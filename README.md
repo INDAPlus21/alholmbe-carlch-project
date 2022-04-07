@@ -13,12 +13,15 @@ Exclusively on evm-chains at first because it's easier. <br>
 ### week 1-3
 - learn more about MEV (https://docs.flashbots.net/new-to-mev) and solidity (the evm programming lang)
 - set up real-time price feeds from a chosen set of chains
-- write testbots in JS and solidity and monitor for opportunities
+- write code for monitoring and structuring data in js or go
+goal: have a bot that can find fake atomic arbs on the rinkeby testnet, and real ones on other evm-chains
 
-### week 3+
+### week 4-5
+- write smart contracts for 1. reading data and 2. executing the trades in solidity
+
+### week 6+
 - run the bots on testnets and see if they work
 - test the bots on mainnet
-- will probably get outcompeted -> rewrite the JS part in go or rust
-
+- will probably get outcompeted -> rewrite the JS part in go or rust OR/AND start looking for cross-chain arbs instead
 
 why JS from the start? the easiest language to prototype with because of the libraries hardhat and ethers-js
