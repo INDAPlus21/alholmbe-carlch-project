@@ -1,3 +1,3 @@
 .env
-*.ts
+_*.ts
 node_modules
