@@ -1,0 +1,26 @@
+{
+    "name": "alholmbe-carlch-project",
+    "version": "1.0.0",
+    "description": "arbitrage bots running across different blockchains <br> looking for: <br> \t1. arbitrages via atomic swaps (selling and buying a token in the same tx on the same chain) <br> \t2. cross-chain arbitrages (selling on one chain and buying on another, the swap is not atomic) <br> and maybe: <br> \t- arbitrages with one leg off-chain and another on-chain (e.g buying on coinbase and selling on uniswap) <br> \t- liquidations <br>",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/INDAPlus21/alholmbe-carlch-project.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/INDAPlus21/alholmbe-carlch-project/issues"
+    },
+    "homepage": "https://github.com/INDAPlus21/alholmbe-carlch-project#readme",
+    "dependencies": {
+        "@flashbots/ethers-provider-bundle": "^0.3.1",
+        "dotenv": "^16.0.0",
+        "lodash": "^4.17.21",
+        "ethers": "^5.0.23"
+    }
+}
