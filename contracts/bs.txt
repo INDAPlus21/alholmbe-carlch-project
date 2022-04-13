@@ -1,6 +1,0 @@
-forge create --rpc-url https://rpc.fantom.network --private-key $PRIVATE_KEY src/UniswapQuery.sol:UniswapQuery
-
-forge verify-contract --chain-id 250 --num-of-optimizations 200 --compiler-version v0.8.13+commit.abaa5c0e 0x61eb25ab8d06efbd9fafba00baaa24a2a1fa565a src/UniswapQuery.sol:UniswapQuery Y12MPWPZCETCQGM7K4Z95XT58JA5XU3G6U
-
-
-forge verify-check --chain-id 56 kffpthp8hmr2qjfrujbm79g9fggxj8wkehzctkxalsfm35nfbs 9W1BVC324ZY6RMEDES1R5RJ5WTGV8YTQJE
