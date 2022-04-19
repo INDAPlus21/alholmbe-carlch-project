@@ -30,7 +30,7 @@ func main() {
     "https://polygon-rpc.com/",
     "https://rpc.heavenswail.one",
     "https://mainnet.aurora.dev",
-    "https://mainnet.optimism.io",
+    "https://api.avax.network/ext/bc/C/rpc",
   }
   /*
   file_json, err := os.Open(marketPairs)
@@ -80,7 +80,7 @@ func fetchAPI(chain string) {
       block, err := client.BlockByNumber(context.Background(), blockNumber)
       if err != nil { break }
 
-      fmt.Printf("%s\t : %d\t : %s\n", blockNumber, len(block.Transactions()), chain)
+      fmt.Printf("%s : %d\t : %s\n", blockNumber, len(block.Transactions()), chain)
     }
   }
 }
