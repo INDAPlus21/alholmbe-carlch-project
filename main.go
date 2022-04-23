@@ -2,17 +2,16 @@ package main
 
 import (
 
+  "os"
+  "os/exec"
+
   "fmt"
-  "log"
   // "os"
   // "bufio"
-  "context"
 
-  "math/big"
   // "encoding/json"
 
   // "github.com/ethereum/go-ethereum/common"
-  "github.com/ethereum/go-ethereum/ethclient"
 )
 
 type Pair struct {
@@ -20,17 +19,24 @@ type Pair struct {
   Tokens    []string  `json:"_tokens"`
 }
 
+const clearLine = "\033[H\033[2J";
+
 const marketPairs = "src/randomjson/bsc_allMarketPairs.json"
 
+
+
 func main() {
-  chains := [7]string{
-    "https://rpc3.fantom.network",
-    "https://bsc-dataseed.binance.org/",
-    "https://cloudflare-eth.com",
-    "https://polygon-rpc.com/",
-    "https://rpc.heavenswail.one",
-    "https://mainnet.aurora.dev",
-    "https://api.avax.network/ext/bc/C/rpc",
+  cmd := exec.Command("tput", "civis")
+  cmd.Stdout = os.Stdout
+  cmd.Run()
+  chains := []Network{
+    {"Fantom", "https://rpc3.fantom.network"},
+    {"Binance", "https://bsc-dataseed.binance.org/"},
+    {"Ethereum", "https://cloudflare-eth.com"},
+    {"Polygon", "https://polygon-rpc.com/"},
+    {"Harmony" ,"https://rpc.heavenswail.one"},
+    {"Aurora", "https://mainnet.aurora.dev"},
+    {"Avalanche", "https://api.avax.network/ext/bc/C/rpc"},
   }
   /*
   file_json, err := os.Open(marketPairs)
@@ -54,33 +60,10 @@ func main() {
 
   defer file_json.Close()
   */
-  for i := 0; i < 7; i++ {
-    go fetchAPI(chains[i])
-  }
+  fmt.Printf("\033[H\033[2JNetwork\t\tTransactions")
+
+
+  printTable(chains, 2);
   for { }
-}
-
-func fetchAPI(chain string) {
-  /* Dail to chain */
-  for {
-    client, err := ethclient.Dial(chain)
-    if err != nil { log.Fatal(err) }
-    fmt.Printf("Successfully connected to %s\n", chain)
-
-    /* Do stuff */
-    blockNumber := big.NewInt(0)
-
-    for {
-      header, err := client.HeaderByNumber(context.Background(), nil)
-      if err != nil { break }
-
-      if blockNumber.Cmp(header.Number) == 0 { continue }
-
-      blockNumber = header.Number
-      block, err := client.BlockByNumber(context.Background(), blockNumber)
-      if err != nil { break }
-
-      fmt.Printf("%s : %d\t : %s\n", blockNumber, len(block.Transactions()), chain)
-    }
-  }
+  //for { }
 }
