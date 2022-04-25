@@ -1,10 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
-
-	"fmt"
 	// "os"
 	// "bufio"
 	// "encoding/json"
@@ -60,5 +59,5 @@ func main() {
 	printTable(chains, 2)
 	for {
 	}
-	//for { }
+
 }
