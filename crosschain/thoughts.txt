@@ -1,0 +1,33 @@
+
+
+
+choose a pair
+create 5 go routines, one for every chain
+fetch prices for the pair in parallell from the different chains
+send the price back to the main routine via a channel
+
+when having the 5 different prices, evaluate opportunities
+
+
+
+on every block update reserves
+
+coin to study: WETH/USDC
+on the following chains:
+  - ethereum L1
+    - uniswap
+    - sushiswap
+  - polygon
+    - quickswap
+
+
+every thread has
+- array of markets
+
+Market {
+  protocol,
+  marketAddress,
+  TokenBalances: Address -> Balance
+}
+
+       
