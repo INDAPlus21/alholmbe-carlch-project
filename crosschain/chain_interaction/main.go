@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	uniswapV2FactoryFile "chain_interaction/generatedContracts"
-
 	"chain_interaction/utils"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
 )
@@ -30,7 +26,7 @@ var SUSHISWAP_FACTORY_ADDRESS_BSC string = "0xc35DADB65012eC5796536bD9864eD8773a
 var WBNB_ADDRESS string = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
 
 func main() {
-	ethFactories := []string{UNISWAP_FACTORY_ADDRESS, SUSHISWAP_FACTORY_ADDRESS}
+	ethFactories := []string{UNISWAP_FACTORY_ADDRESS_ROPSTEN, SUSHISWAP_FACTORY_ADDRESS_ROPSTEN}
 	// bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
 	// get a provider
@@ -45,22 +41,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_ := utils.UniswapV2Markets(client, ethFactories)
+	markets := utils.UniswapV2Markets(client, ethFactories)
+
+	_ = markets
 
 	// get a connection to the uniswapV2Factory contract
-	address := common.HexToAddress(UNISWAP_FACTORY_ADDRESS_ROPSTEN)
-	instance, err := uniswapV2FactoryFile.NewGeneratedContracts(address, client)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// get markets
-	length, err := instance.AllPairsLength(nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(length) // "1.0"
 
 	// set up listener for new block
 
