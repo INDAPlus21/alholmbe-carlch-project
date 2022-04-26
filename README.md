@@ -11,6 +11,7 @@ Crypto arbitrage trading is a form of *arbitrage* trading that utilizes the vast
     <dt>Decentralized exchanges</dt>
     <dd>A type of cryptocurrency exhange which allows for direct peer-to-peer cryptocurrent transactions to take palce securly without the need for an intermediary.</dd>
 </dl>
+
 ## How it works
 - **Connect**: Connect to multiple Ethereum related networks.
 - **Scrape**: Fetch transaction data from the most recent block of transactions.
