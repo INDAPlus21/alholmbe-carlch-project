@@ -1,0 +1,4 @@
+.env
+bs.txt
+_*.ts
+node_modules

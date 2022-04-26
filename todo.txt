@@ -1,0 +1,35 @@
+
+
+
+
+dela upp folders:
+
+atomic:
+  - där vi försöker göra atomic arbs
+  - skrivs i typescript
+
+crosschain:
+  - där vi försöker göra cross-chain arbs
+  - skrivs i go
+
+UI:
+  - terminal ui som displayar alla arbs vi hittar
+  - börja med fakedata (integrera sedan med de andra repos)
+  - skrivs i go
+
+geth-book
+  - bara lite exempel på hur man kan anropa funktioner på blockkedjor från go
+
+
+TODO:
+
+  Alex:
+    - skriv programmen som hämtar data från kedjorna i crosschain mappen
+
+  Carl:
+    - jobba på UIn
+    - Skriva datatyper / strukturer
+
+  Båda:
+    - research om arbitrage algoritmer
+    - specifiera datastrukturerna som vi jobbar med
