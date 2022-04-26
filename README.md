@@ -8,7 +8,6 @@ Crypto arbitrage trading is a form of *arbitrage* trading that utilizes the vast
 <dl>
     <dt>Arbitrage</dt>
     <dd>an investment strategy in which an investor simultaneously buys and sells an asset in different markets to take advantage of a price difference and generate a profit.</dd>
-
     <dt>Decentralized exchanges</dt>
     <dd>A type of cryptocurrency exhange which allows for direct peer-to-peer cryptocurrent transactions to take palce securly without the need for an intermediary.</dd>
 </dl>
