@@ -1,0 +1,22 @@
+Hämtar pairs
+- pair består av 2 tokens
+
+Token är en valuta
+
+pair {
+    pairAddress
+
+    tokenBalances {
+        tokenAddress -> balance
+        tokenAddress -> balance
+    }
+}
+
+pair -> alla nätverk som pair finns i
+
+data från contracts
+
+på varje nätverk:
+ - valuta på pair
+ - gas-pris
+Jämför  ^

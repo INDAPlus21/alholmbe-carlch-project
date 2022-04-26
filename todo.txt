@@ -24,11 +24,12 @@ geth-book
 TODO:
 
   Alex:
-    - specifiera datastrukturerna som vi jobbar med
     - skriv programmen som hämtar data från kedjorna i crosschain mappen
-  
+
   Carl:
     - jobba på UIn
+    - Skriva datatyper / strukturer
 
   Båda:
     - research om arbitrage algoritmer
+    - specifiera datastrukturerna som vi jobbar med
