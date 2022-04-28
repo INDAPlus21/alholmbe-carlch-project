@@ -28,7 +28,7 @@ const WBNB_ADDRESS string = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
 
 func main() {
 	// bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
-	ethFactories := []string{UNISWAP_FACTORY_ADDRESS_ROPSTEN, SUSHISWAP_FACTORY_ADDRESS_ROPSTEN}
+	ethFactories := []string{UNISWAP_FACTORY_ADDRESS_ROPSTEN}
 
 	// get a provider
 	err := godotenv.Load()
@@ -44,9 +44,12 @@ func main() {
 
 	markets := utils.UniswapV2Markets(client, ethFactories)
 
-	fmt.Println(markets)
+	// get all markets
+	for k, v := range markets {
+		fmt.Printf("key token: %v, pair: %v \n", k, v[0].PairAddress.String())
+	}
 
-	// get a connection to the uniswapV2Factory contract
+	// communicate the markets back to the main goroutine
 
 	// set up listener for new block
 
