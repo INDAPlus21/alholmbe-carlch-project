@@ -10,11 +10,6 @@ import (
 	// "github.com/ethereum/go-ethereum/common"
 )
 
-type Pair struct {
-	Market string   `json:"_marketAddress"`
-	Tokens []string `json:"_tokens"`
-}
-
 const clearLine = "\033[H\033[2J"
 
 const marketPairs = "src/randomjson/bsc_allMarketPairs.json"
