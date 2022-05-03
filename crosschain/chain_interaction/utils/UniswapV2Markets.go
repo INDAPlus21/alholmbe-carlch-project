@@ -20,6 +20,18 @@ const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
 
 const WETH_ADDRESS string = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
+// maps asset (e.g WETH) to networks (e.g ethereum and bsc)
+type UniswapV2Markets struct {
+	Asset map[string]map[string]Network
+}
+
+// maps network (e.g ethereum) to pairs
+type Network struct {
+	Asset    string
+	Protocol string
+	Pairs    []UniswapV2EthPair
+}
+
 type UniswapV2EthPair struct {
 	PairAddress   common.Address
 	Token0Address common.Address
@@ -28,11 +40,7 @@ type UniswapV2EthPair struct {
 	Token1Balance *big.Int
 }
 
-// mapping from non weth-token to it's markets
-type MarketByTokenAddress struct {
-}
-
-func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryContractAddress string, baseCurrencyAddress string) []UniswapV2EthPair {
+func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclient.Client, address string, queryContractAddress string, baseCurrencyAddress string) []UniswapV2EthPair {
 	baseCurrency := common.HexToAddress(baseCurrencyAddress)
 	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
 	factoryAddress := common.HexToAddress(address)
@@ -53,7 +61,6 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryCon
 		log.Fatal(err)
 	}
 	numberOfPairs := int(bigNum.Int64())
-	fmt.Println(numberOfPairs)
 
 	var x int
 	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
@@ -90,7 +97,9 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryCon
 
 }
 
-func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string) (
+func (uniswapMarkets *UniswapV2Markets) GetUniswapV2Markets(
+	client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string,
+) (
 	[]UniswapV2EthPair, []UniswapV2EthPair, map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
 	WETH := common.HexToAddress(WETH_ADDRESS)
 
@@ -98,7 +107,7 @@ func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContrac
 	// markets is a list with all pairs on this network
 	allMarkets := [][]UniswapV2EthPair{}
 	for i := 0; i < len(addresses); i++ {
-		marketPairs := uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
+		marketPairs := uniswapMarkets.uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
 		allMarkets = append(allMarkets, marketPairs)
 	}
 
@@ -144,9 +153,10 @@ func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContrac
 	return allMarketsFlat, crossMarkets, allMarketsByToken, crossMarketsByToken
 }
 
-func UpdateReserves(
+func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 	client *ethclient.Client,
-	markets *[]UniswapV2EthPair,
+	asset string,
+	protocol string,
 	queryContractAddress string) {
 	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
 	uniswapQuery, err := UniswapQuery.NewUniswapQuery(uniswapQueryAddress, client)
@@ -154,7 +164,7 @@ func UpdateReserves(
 		log.Fatal(err)
 	}
 	pairAddresses := []common.Address{}
-	for _, market := range *markets {
+	for _, market := range uniswapMarkets.Asset[asset][protocol].Pairs {
 		pairAddresses = append(pairAddresses, market.PairAddress)
 	}
 	reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
@@ -162,10 +172,12 @@ func UpdateReserves(
 		log.Fatal(err)
 	}
 
-	for i := 0; i < len(*markets); i++ {
+	for i := 0; i < len(uniswapMarkets.Asset[asset][protocol].Pairs); i++ {
 		// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
-		(*markets)[i].Token0Balance = reserves[i][0]
-		(*markets)[i].Token1Balance = reserves[i][1]
+		// (*markets)[i].Token0Balance = reserves[i][0]
+		// (*markets)[i].Token1Balance = reserves[i][1]
+		uniswapMarkets.Asset[asset][protocol].Pairs[i].Token0Balance = reserves[i][0]
+		uniswapMarkets.Asset[asset][protocol].Pairs[i].Token1Balance = reserves[i][1]
 	}
 
 }

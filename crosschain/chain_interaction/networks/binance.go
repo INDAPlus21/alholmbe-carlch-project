@@ -17,7 +17,7 @@ const PANCAKESWAP_FACTORY_ADDRESS_BSC string = "0xca143ce32fe78f1f7019d7d551a640
 const WBNB_ADDRESS_BSC string = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
 const UNISWAP_QUERY_ADDRESS_BSC string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A"
 
-func Binance(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
+func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 	bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
 	// get a provider
@@ -33,7 +33,8 @@ func Binance(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 	}
 
 	// get all eth markets
-	allMarkets, crossMarkets, _, _ := utils.UniswapV2Markets(
+	// instead of returning markets, mutate the market object itself
+	allMarkets, crossMarkets, _, _ := uniswapMarkets.GetUniswapV2Markets(
 		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC,
 	)
 	// communicate the markets back to the main goroutine
@@ -41,11 +42,17 @@ func Binance(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 
 	fmt.Printf("allMarkets: %d\n", len(allMarkets))
 	fmt.Printf("crossMarkets: %d\n", len(crossMarkets))
+	// uniswapMarkets.Asset["WBNB"]["bsc"].Pairs
+	var x = uniswapMarkets.Asset["WBNB"]["bsc"]
+	x.Pairs = crossMarkets
+	uniswapMarkets.Asset["WBNB"]["bsc"] = x
+	fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)
 
 	// evaluate for atomic arbs
-	utils.UpdateReserves(client, &crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
+	// utils.UpdateReserves(client, &crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
+	uniswapMarkets.UpdateReserves(client, "WBNB", "bsc", UNISWAP_QUERY_ADDRESS_BSC)
 
-	fmt.Println(crossMarkets)
+	// fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)
 
 	wg.Done()
 	// crossMarkets := []
