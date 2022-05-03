@@ -1,0 +1,20 @@
+where to store reserve state?
+
+
+GiantObject
+  WETH
+    ethereum
+      []UniswapV2EthPair
+    binance
+      []UniswapV2EthPair
+    polygon
+      []UniswapV2EthPair
+  WBNB
+    ethereum
+    binance
+    polygon
+  WMATIC
+    ethereum
+    binance
+    polygon
+

@@ -24,6 +24,8 @@ type UniswapV2EthPair struct {
 	PairAddress   common.Address
 	Token0Address common.Address
 	Token1Address common.Address
+	Token0Balance *big.Int
+	Token1Balance *big.Int
 }
 
 // mapping from non weth-token to it's markets
@@ -78,7 +80,7 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryCon
 				continue
 			}
 
-			uniswapV2EthPair := UniswapV2EthPair{pairAddress, pair[0], pair[1]}
+			uniswapV2EthPair := UniswapV2EthPair{pairAddress, pair[0], pair[1], big.NewInt(0), big.NewInt(0)}
 
 			marketPairs = append(marketPairs, uniswapV2EthPair)
 		}
@@ -144,7 +146,7 @@ func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContrac
 
 func UpdateReserves(
 	client *ethclient.Client,
-	markets []UniswapV2EthPair,
+	markets *[]UniswapV2EthPair,
 	queryContractAddress string) {
 	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
 	uniswapQuery, err := UniswapQuery.NewUniswapQuery(uniswapQueryAddress, client)
@@ -152,7 +154,7 @@ func UpdateReserves(
 		log.Fatal(err)
 	}
 	pairAddresses := []common.Address{}
-	for _, market := range markets {
+	for _, market := range *markets {
 		pairAddresses = append(pairAddresses, market.PairAddress)
 	}
 	reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
@@ -160,17 +162,11 @@ func UpdateReserves(
 		log.Fatal(err)
 	}
 
-	fmt.Println(reserves)
-	fmt.Println()
-	fmt.Println(reserves[0])
-	/*
-			for (let i = 0; i < allMarketPairs.length; i++) {
-		            const marketPair = allMarketPairs[i];
-		            const reserve = reserves[i];
-		            // updates this instance of a pair's _tokenBalances
-		            marketPair.setReservesViaOrderedBalances([reserve[0], reserve[1]]);
-		        }
-	*/
+	for i := 0; i < len(*markets); i++ {
+		// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
+		(*markets)[i].Token0Balance = reserves[i][0]
+		(*markets)[i].Token1Balance = reserves[i][1]
+	}
 
 }
 

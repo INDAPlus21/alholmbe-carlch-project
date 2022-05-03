@@ -43,7 +43,9 @@ func Binance(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 	fmt.Printf("crossMarkets: %d\n", len(crossMarkets))
 
 	// evaluate for atomic arbs
-	utils.UpdateReserves(client, crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
+	utils.UpdateReserves(client, &crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
+
+	fmt.Println(crossMarkets)
 
 	wg.Done()
 	// crossMarkets := []
