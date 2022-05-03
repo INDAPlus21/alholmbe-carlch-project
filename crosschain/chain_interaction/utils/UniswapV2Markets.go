@@ -14,7 +14,7 @@ import (
 
 // useful for testing purposes, so we don't have to load all markets (takes time)
 const BATCH_COUNT_LIMIT int = 50
-const UNISWAP_BATCH_SIZE int = 100
+const UNISWAP_BATCH_SIZE int = 50
 
 const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
 
@@ -47,6 +47,9 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryCon
 	}
 
 	bigNum, err := uniswapV2Factory.AllPairsLength(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 	numberOfPairs := int(bigNum.Int64())
 	fmt.Println(numberOfPairs)
 
@@ -85,51 +88,90 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryCon
 
 }
 
-func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string) (map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
+func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string) (
+	[]UniswapV2EthPair, []UniswapV2EthPair, map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
 	WETH := common.HexToAddress(WETH_ADDRESS)
 
 	// for every address, get markets
 	// markets is a list with all pairs on this network
-	markets := [][]UniswapV2EthPair{}
+	allMarkets := [][]UniswapV2EthPair{}
 	for i := 0; i < len(addresses); i++ {
 		marketPairs := uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
-		markets = append(markets, marketPairs)
+		allMarkets = append(allMarkets, marketPairs)
 	}
 
 	// group markets by non weth token address
 	// mapped from the non weth token address
-	marketsByToken := map[string][]UniswapV2EthPair{}
+	allMarketsByToken := map[string][]UniswapV2EthPair{}
+	// a flat list of all markets
+	allMarketsFlat := []UniswapV2EthPair{}
 
 	// groups all pairs into a dictionary with the non weth token as the key
 	// O(n^2) doesn't matter, this function will only run on startup
-	for i := 0; i < len(markets); i++ {
-		for j := 0; j < len(markets[i]); j++ {
-			if markets[i][j].Token0Address == WETH {
-				if _, ok := marketsByToken[markets[i][j].Token1Address.String()]; ok {
-					marketsByToken[markets[i][j].Token1Address.String()] =
-						append(marketsByToken[markets[i][j].Token1Address.String()], markets[i][j])
+	for i := 0; i < len(allMarkets); i++ {
+		for j := 0; j < len(allMarkets[i]); j++ {
+			allMarketsFlat = append(allMarketsFlat, allMarkets[i][j])
+			if allMarkets[i][j].Token0Address == WETH {
+				if _, ok := allMarketsByToken[allMarkets[i][j].Token1Address.String()]; ok {
+					allMarketsByToken[allMarkets[i][j].Token1Address.String()] =
+						append(allMarketsByToken[allMarkets[i][j].Token1Address.String()], allMarkets[i][j])
 				} else {
-					marketsByToken[markets[i][j].Token1Address.String()] = []UniswapV2EthPair{markets[i][j]}
+					allMarketsByToken[allMarkets[i][j].Token1Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
 				}
 			} else {
-				if _, ok := marketsByToken[markets[i][j].Token0Address.String()]; ok {
-					marketsByToken[markets[i][j].Token0Address.String()] =
-						append(marketsByToken[markets[i][j].Token0Address.String()], markets[i][j])
+				if _, ok := allMarketsByToken[allMarkets[i][j].Token0Address.String()]; ok {
+					allMarketsByToken[allMarkets[i][j].Token0Address.String()] =
+						append(allMarketsByToken[allMarkets[i][j].Token0Address.String()], allMarkets[i][j])
 				} else {
-					marketsByToken[markets[i][j].Token0Address.String()] = []UniswapV2EthPair{markets[i][j]}
+					allMarketsByToken[allMarkets[i][j].Token0Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
 				}
 			}
 		}
 	}
 
 	// a cross markets exists if the same market exists on 2+ places on 1 network
-	crossMarkets := make(map[string][]UniswapV2EthPair)
-	for k, v := range marketsByToken {
-		if len(v) > 1 {
-			crossMarkets[k] = v
+	crossMarketsByToken := make(map[string][]UniswapV2EthPair)
+	crossMarkets := []UniswapV2EthPair{}
+	for tokenAddress, markets := range allMarketsByToken {
+		if len(markets) > 1 {
+			crossMarketsByToken[tokenAddress] = markets
+			crossMarkets = append(crossMarkets, markets...)
 		}
 	}
-	return marketsByToken, crossMarkets
+
+	return allMarketsFlat, crossMarkets, allMarketsByToken, crossMarketsByToken
+}
+
+func UpdateReserves(
+	client *ethclient.Client,
+	markets []UniswapV2EthPair,
+	queryContractAddress string) {
+	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
+	uniswapQuery, err := UniswapQuery.NewUniswapQuery(uniswapQueryAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pairAddresses := []common.Address{}
+	for _, market := range markets {
+		pairAddresses = append(pairAddresses, market.PairAddress)
+	}
+	reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(reserves)
+	fmt.Println()
+	fmt.Println(reserves[0])
+	/*
+			for (let i = 0; i < allMarketPairs.length; i++) {
+		            const marketPair = allMarketPairs[i];
+		            const reserve = reserves[i];
+		            // updates this instance of a pair's _tokenBalances
+		            marketPair.setReservesViaOrderedBalances([reserve[0], reserve[1]]);
+		        }
+	*/
+
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

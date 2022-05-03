@@ -39,7 +39,7 @@ func Ethereum(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 	}
 
 	// get all eth markets
-	allMarkets, crossMarkets := utils.UniswapV2Markets(client, ethFactories, UNISWAP_QUERY_ADDRESS_ROPSTEN, WETH_ADDRESS_ROPSTEN)
+	allMarkets, crossMarkets, _, _ := utils.UniswapV2Markets(client, ethFactories, UNISWAP_QUERY_ADDRESS_ROPSTEN, WETH_ADDRESS_ROPSTEN)
 	// communicate the markets back to the main goroutine
 	// ch <- allMarkets
 

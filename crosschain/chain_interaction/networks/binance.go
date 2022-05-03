@@ -33,15 +33,19 @@ func Binance(ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
 	}
 
 	// get all eth markets
-	allMarkets, crossMarkets := utils.UniswapV2Markets(client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC)
+	allMarkets, crossMarkets, _, _ := utils.UniswapV2Markets(
+		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC,
+	)
 	// communicate the markets back to the main goroutine
 	// ch <- allMarkets
 
 	fmt.Printf("allMarkets: %d\n", len(allMarkets))
 	fmt.Printf("crossMarkets: %d\n", len(crossMarkets))
-	wg.Done()
 
 	// evaluate for atomic arbs
+	utils.UpdateReserves(client, crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
+
+	wg.Done()
 	// crossMarkets := []
 
 	// set up listener for new block
