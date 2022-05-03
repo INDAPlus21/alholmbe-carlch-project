@@ -6,16 +6,16 @@ import (
 	"math/big"
 
 	UniswapQuery "chain_interaction/UniswapQuery"
+	UniswapV2Factory "chain_interaction/generatedContracts"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 // useful for testing purposes, so we don't have to load all markets (takes time)
-const BATCH_COUNT_LIMIT int = 5
-const UNISWAP_BATCH_SIZE int = 1000
+const BATCH_COUNT_LIMIT int = 50
+const UNISWAP_BATCH_SIZE int = 100
 
-const UNISWAP_QUERY_ADDRESS_ROPSTEN string = "0x00016943476b76256b31dd90aa9d0ecc7f2c4d38"
 const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
 
 const WETH_ADDRESS string = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
@@ -30,25 +30,39 @@ type UniswapV2EthPair struct {
 type MarketByTokenAddress struct {
 }
 
-func uniswapV2MarketByFactory(client *ethclient.Client, address string) []UniswapV2EthPair {
-	wethAddress := common.HexToAddress(WETH_ADDRESS)
-	uniswapQueryAddress := common.HexToAddress(UNISWAP_QUERY_ADDRESS_ROPSTEN)
+func uniswapV2MarketByFactory(client *ethclient.Client, address string, queryContractAddress string, baseCurrencyAddress string) []UniswapV2EthPair {
+	baseCurrency := common.HexToAddress(baseCurrencyAddress)
+	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
 	factoryAddress := common.HexToAddress(address)
 
 	// list with all marketPairs
 	marketPairs := []UniswapV2EthPair{}
-
+	uniswapV2Factory, err := UniswapV2Factory.NewGeneratedContracts(factoryAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
 	uniswapQuery, err := UniswapQuery.NewUniswapQuery(uniswapQueryAddress, client)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for i := 0; i < BATCH_COUNT_LIMIT*UNISWAP_BATCH_SIZE; i += UNISWAP_BATCH_SIZE {
+	bigNum, err := uniswapV2Factory.AllPairsLength(nil)
+	numberOfPairs := int(bigNum.Int64())
+	fmt.Println(numberOfPairs)
+
+	var x int
+	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
+		x = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
+	} else {
+		x = numberOfPairs
+	}
+
+	for i := 0; i < x; i += UNISWAP_BATCH_SIZE {
 		// get pairs from the network
 		pairs, err := uniswapQuery.GetPairsByRange(nil, factoryAddress, big.NewInt(int64(i)), big.NewInt(int64(i+UNISWAP_BATCH_SIZE)))
 		if err != nil {
 			// this happens because something is weird in the sushiswap factory contract
-			fmt.Printf("revert at i = %d, factoryAddress = %s", i, factoryAddress)
+			fmt.Printf("revert at i = %d, factoryAddress = %s\n", i, factoryAddress)
 			log.Fatal(err)
 		}
 
@@ -56,7 +70,7 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string) []Uniswa
 			pair := pairs[j]
 			pairAddress := pair[2]
 
-			if pair[0] != wethAddress && pair[1] != wethAddress {
+			if pair[0] != baseCurrency && pair[1] != baseCurrency {
 				// we don't care if none of the tokens in the pair is weth
 				continue
 			}
@@ -71,17 +85,19 @@ func uniswapV2MarketByFactory(client *ethclient.Client, address string) []Uniswa
 
 }
 
-func UniswapV2Markets(client *ethclient.Client, addresses []string) map[string][]UniswapV2EthPair {
+func UniswapV2Markets(client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string) (map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
 	WETH := common.HexToAddress(WETH_ADDRESS)
+
 	// for every address, get markets
 	// markets is a list with all pairs on this network
 	markets := [][]UniswapV2EthPair{}
 	for i := 0; i < len(addresses); i++ {
-		marketPairs := uniswapV2MarketByFactory(client, addresses[i])
+		marketPairs := uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
 		markets = append(markets, marketPairs)
 	}
 
 	// group markets by non weth token address
+	// mapped from the non weth token address
 	marketsByToken := map[string][]UniswapV2EthPair{}
 
 	// groups all pairs into a dictionary with the non weth token as the key
@@ -105,7 +121,15 @@ func UniswapV2Markets(client *ethclient.Client, addresses []string) map[string][
 			}
 		}
 	}
-	return marketsByToken
+
+	// a cross markets exists if the same market exists on 2+ places on 1 network
+	crossMarkets := make(map[string][]UniswapV2EthPair)
+	for k, v := range marketsByToken {
+		if len(v) > 1 {
+			crossMarkets[k] = v
+		}
+	}
+	return marketsByToken, crossMarkets
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

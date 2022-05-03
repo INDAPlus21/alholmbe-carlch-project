@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 
 	"chain_interaction/networks"
@@ -19,13 +18,13 @@ func main() {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 
-	go networks.Ethereum(ch1, wg)
+	go networks.Binance(ch1, wg)
 
-	for ethPairs := range ch1 {
-		for k, v := range ethPairs {
-			fmt.Printf("key token: %v, pair: %v \n", k, v[0].PairAddress.String())
-		}
-	}
+	// for ethPairs := range ch1 {
+	// 	for k, v := range ethPairs {
+	// 		fmt.Printf("key token: %v, pair: %v \n", k, v[0].PairAddress.String())
+	// 	}
+	// }
 
 	wg.Wait()
 
