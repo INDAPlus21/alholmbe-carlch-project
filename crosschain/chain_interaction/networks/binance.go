@@ -34,22 +34,25 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 
 	// get all eth markets
 	// instead of returning markets, mutate the market object itself
-	allMarkets, crossMarkets, _, _ := uniswapMarkets.GetUniswapV2Markets(
-		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC,
+	// allMarkets, crossMarkets, _, _ := uniswapMarkets.GetUniswapV2Markets(
+	// 	client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC,
+	// )
+	uniswapMarkets.UpdateMarkets(
+		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC, "WBNB", "bsc",
 	)
 	// communicate the markets back to the main goroutine
 	// ch <- allMarkets
 
-	fmt.Printf("allMarkets: %d\n", len(allMarkets))
-	fmt.Printf("crossMarkets: %d\n", len(crossMarkets))
+	fmt.Printf("allMarkets: %d\n", len(*uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
+	fmt.Printf("crossMarkets: %d\n", len(*uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets))
 
 	// weird go thing
-	var x = uniswapMarkets.Asset["WBNB"]["bsc"]
-	x.Pairs = &crossMarkets
-	uniswapMarkets.Asset["WBNB"]["bsc"] = x
+	// var x = uniswapMarkets.Asset["WBNB"]["bsc"]
+	// x.Pairs = &crossMarkets
+	// uniswapMarkets.Asset["WBNB"]["bsc"] = x
 
 	uniswapMarkets.UpdateReserves(client, "WBNB", "bsc", UNISWAP_QUERY_ADDRESS_BSC)
-	fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)
+	fmt.Println(*uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets)
 
 	// evaluate for atomic arbs
 	// fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)

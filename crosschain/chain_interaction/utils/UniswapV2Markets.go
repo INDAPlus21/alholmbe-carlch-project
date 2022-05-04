@@ -165,7 +165,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	baseCurrencyAddress string,
 	asset string,
 	protocol string) {
-	// WETH := common.HexToAddress(WETH_ADDRESS)
+	WETH := common.HexToAddress(WETH_ADDRESS)
 
 	// for every address, get markets
 	// markets is a list with all pairs on this network
@@ -175,7 +175,47 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 		allMarkets = append(allMarkets, marketPairs)
 	}
 
-	// uniswapMarkets.Asset[asset][protocol].AllMarkets = allMarkets
+	// group markets by non weth token address
+	// mapped from the non weth token address
+	allMarketsByToken := map[string][]UniswapV2EthPair{}
+	// a flat list of all markets
+	allMarketsFlat := []UniswapV2EthPair{}
+
+	// groups all pairs into a dictionary with the non weth token as the key
+	// O(n^2) doesn't matter, this function will only run on startup
+	for i := 0; i < len(allMarkets); i++ {
+		for j := 0; j < len(allMarkets[i]); j++ {
+			allMarketsFlat = append(allMarketsFlat, allMarkets[i][j])
+			if allMarkets[i][j].Token0Address == WETH {
+				if _, ok := allMarketsByToken[allMarkets[i][j].Token1Address.String()]; ok {
+					allMarketsByToken[allMarkets[i][j].Token1Address.String()] =
+						append(allMarketsByToken[allMarkets[i][j].Token1Address.String()], allMarkets[i][j])
+				} else {
+					allMarketsByToken[allMarkets[i][j].Token1Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
+				}
+			} else {
+				if _, ok := allMarketsByToken[allMarkets[i][j].Token0Address.String()]; ok {
+					allMarketsByToken[allMarkets[i][j].Token0Address.String()] =
+						append(allMarketsByToken[allMarkets[i][j].Token0Address.String()], allMarkets[i][j])
+				} else {
+					allMarketsByToken[allMarkets[i][j].Token0Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
+				}
+			}
+		}
+	}
+
+	// a cross markets exists if the same market exists on 2+ places on 1 network
+	crossMarketsByToken := make(map[string][]UniswapV2EthPair)
+	crossMarketsFlat := []UniswapV2EthPair{}
+	for tokenAddress, markets := range allMarketsByToken {
+		if len(markets) > 1 {
+			crossMarketsByToken[tokenAddress] = markets
+			crossMarketsFlat = append(crossMarketsFlat, markets...)
+		}
+	}
+
+	uniswapMarkets.Asset[asset][protocol].AllMarkets = &allMarketsFlat
+	uniswapMarkets.Asset[asset][protocol].CrossMarkets = &crossMarketsFlat
 
 }
 
@@ -190,7 +230,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		log.Fatal(err)
 	}
 	pairAddresses := []common.Address{}
-	for _, market := range *uniswapMarkets.Asset[asset][protocol].Pairs {
+	for _, market := range *uniswapMarkets.Asset[asset][protocol].CrossMarkets {
 		pairAddresses = append(pairAddresses, market.PairAddress)
 	}
 	reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
@@ -198,10 +238,10 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		log.Fatal(err)
 	}
 
-	for i := 0; i < len(*uniswapMarkets.Asset[asset][protocol].Pairs); i++ {
+	for i := 0; i < len(*uniswapMarkets.Asset[asset][protocol].CrossMarkets); i++ {
 		// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
-		(*uniswapMarkets.Asset[asset][protocol].Pairs)[i].Token0Balance = reserves[i][0]
-		(*uniswapMarkets.Asset[asset][protocol].Pairs)[i].Token1Balance = reserves[i][1]
+		(*uniswapMarkets.Asset[asset][protocol].CrossMarkets)[i].Token0Balance = reserves[i][0]
+		(*uniswapMarkets.Asset[asset][protocol].CrossMarkets)[i].Token1Balance = reserves[i][1]
 	}
 
 }
