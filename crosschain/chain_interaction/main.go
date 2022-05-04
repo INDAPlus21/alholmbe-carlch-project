@@ -14,17 +14,17 @@ const WBNB_ADDRESS string = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
 
 func main() {
 	// setup
-	ethereum_WETH := utils.Network{Asset: "WETH", Protocol: "ethereum", Pairs: &[]utils.UniswapV2EthPair{}}
-	ethereum_WBNB := utils.Network{Asset: "WBNB", Protocol: "ethereum", Pairs: &[]utils.UniswapV2EthPair{}}
-	ethereum_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "ethereum", Pairs: &[]utils.UniswapV2EthPair{}}
+	ethereum_WETH := utils.Network{Asset: "WETH", Protocol: "ethereum"}
+	ethereum_WBNB := utils.Network{Asset: "WBNB", Protocol: "ethereum"}
+	ethereum_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "ethereum"}
 
-	bsc_WETH := utils.Network{Asset: "WETH", Protocol: "bsc", Pairs: &[]utils.UniswapV2EthPair{}}
-	bsc_WBNB := utils.Network{Asset: "WBNB", Protocol: "bsc", Pairs: &[]utils.UniswapV2EthPair{}}
-	bsc_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "bsc", Pairs: &[]utils.UniswapV2EthPair{}}
+	bsc_WETH := utils.Network{Asset: "WETH", Protocol: "bsc"}
+	bsc_WBNB := utils.Network{Asset: "WBNB", Protocol: "bsc"}
+	bsc_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "bsc"}
 
-	polygon_WETH := utils.Network{Asset: "WETH", Protocol: "polygon", Pairs: &[]utils.UniswapV2EthPair{}}
-	polygon_WBNB := utils.Network{Asset: "WBNB", Protocol: "polygon", Pairs: &[]utils.UniswapV2EthPair{}}
-	polygon_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "polygon", Pairs: &[]utils.UniswapV2EthPair{}}
+	polygon_WETH := utils.Network{Asset: "WETH", Protocol: "polygon"}
+	polygon_WBNB := utils.Network{Asset: "WBNB", Protocol: "polygon"}
+	polygon_WMATIC := utils.Network{Asset: "WMATIC", Protocol: "polygon"}
 
 	uniswapMarkets := utils.UniswapV2Markets{}
 	uniswapMarkets.Asset = make(map[string]map[string]*utils.Network)

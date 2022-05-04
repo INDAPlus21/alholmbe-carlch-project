@@ -5,6 +5,10 @@ forge create --rpc-url $rpc_rinkeby  --private-key $pk2 src/UniswapQuery.sol:Uni
 DEPLOY:ROPSTEN
 forge create --rpc-url $rpc_ropsten --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
 
+DEPLOY:ETHEREUM
+forge create --rpc-url $rpc_ethereum --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
+
+
 DEPLOY:BSC
 forge create --rpc-url $rpc_bsc --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
 

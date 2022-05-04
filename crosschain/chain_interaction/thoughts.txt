@@ -1,7 +1,7 @@
 where to store reserve state?
 
 
-GiantObject
+UniswapMarkets
   WETH
     ethereum
       []UniswapV2EthPair
@@ -11,10 +11,16 @@ GiantObject
       []UniswapV2EthPair
   WBNB
     ethereum
+      []UniswapV2EthPair
     binance
+      []UniswapV2EthPair
     polygon
+      []UniswapV2EthPair
   WMATIC
     ethereum
+      []UniswapV2EthPair
     binance
+      []UniswapV2EthPair
     polygon
+      []UniswapV2EthPair
 

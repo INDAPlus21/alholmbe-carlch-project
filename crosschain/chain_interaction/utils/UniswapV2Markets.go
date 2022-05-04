@@ -99,65 +99,6 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 }
 
-func (uniswapMarkets *UniswapV2Markets) GetUniswapV2Markets(
-	client *ethclient.Client,
-	addresses []string,
-	queryContractAddress string,
-	baseCurrencyAddress string,
-) (
-	[]UniswapV2EthPair, []UniswapV2EthPair, map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
-	WETH := common.HexToAddress(WETH_ADDRESS)
-
-	// for every address, get markets
-	// markets is a list with all pairs on this network
-	allMarkets := [][]UniswapV2EthPair{}
-	for i := 0; i < len(addresses); i++ {
-		marketPairs := uniswapMarkets.uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
-		allMarkets = append(allMarkets, marketPairs)
-	}
-
-	// group markets by non weth token address
-	// mapped from the non weth token address
-	allMarketsByToken := map[string][]UniswapV2EthPair{}
-	// a flat list of all markets
-	allMarketsFlat := []UniswapV2EthPair{}
-
-	// groups all pairs into a dictionary with the non weth token as the key
-	// O(n^2) doesn't matter, this function will only run on startup
-	for i := 0; i < len(allMarkets); i++ {
-		for j := 0; j < len(allMarkets[i]); j++ {
-			allMarketsFlat = append(allMarketsFlat, allMarkets[i][j])
-			if allMarkets[i][j].Token0Address == WETH {
-				if _, ok := allMarketsByToken[allMarkets[i][j].Token1Address.String()]; ok {
-					allMarketsByToken[allMarkets[i][j].Token1Address.String()] =
-						append(allMarketsByToken[allMarkets[i][j].Token1Address.String()], allMarkets[i][j])
-				} else {
-					allMarketsByToken[allMarkets[i][j].Token1Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
-				}
-			} else {
-				if _, ok := allMarketsByToken[allMarkets[i][j].Token0Address.String()]; ok {
-					allMarketsByToken[allMarkets[i][j].Token0Address.String()] =
-						append(allMarketsByToken[allMarkets[i][j].Token0Address.String()], allMarkets[i][j])
-				} else {
-					allMarketsByToken[allMarkets[i][j].Token0Address.String()] = []UniswapV2EthPair{allMarkets[i][j]}
-				}
-			}
-		}
-	}
-
-	// a cross markets exists if the same market exists on 2+ places on 1 network
-	crossMarketsByToken := make(map[string][]UniswapV2EthPair)
-	crossMarkets := []UniswapV2EthPair{}
-	for tokenAddress, markets := range allMarketsByToken {
-		if len(markets) > 1 {
-			crossMarketsByToken[tokenAddress] = markets
-			crossMarkets = append(crossMarkets, markets...)
-		}
-	}
-
-	return allMarketsFlat, crossMarkets, allMarketsByToken, crossMarketsByToken
-}
-
 func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	client *ethclient.Client,
 	addresses []string,
