@@ -42,16 +42,16 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 
 	fmt.Printf("allMarkets: %d\n", len(allMarkets))
 	fmt.Printf("crossMarkets: %d\n", len(crossMarkets))
-	// uniswapMarkets.Asset["WBNB"]["bsc"].Pairs
+
+	// weird go thing
 	var x = uniswapMarkets.Asset["WBNB"]["bsc"]
-	x.Pairs = crossMarkets
+	x.Pairs = &crossMarkets
 	uniswapMarkets.Asset["WBNB"]["bsc"] = x
+
+	uniswapMarkets.UpdateReserves(client, "WBNB", "bsc", UNISWAP_QUERY_ADDRESS_BSC)
 	fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)
 
 	// evaluate for atomic arbs
-	// utils.UpdateReserves(client, &crossMarkets, UNISWAP_QUERY_ADDRESS_BSC)
-	uniswapMarkets.UpdateReserves(client, "WBNB", "bsc", UNISWAP_QUERY_ADDRESS_BSC)
-
 	// fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].Pairs)
 
 	wg.Done()

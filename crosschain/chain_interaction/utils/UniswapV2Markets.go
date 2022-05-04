@@ -22,14 +22,16 @@ const WETH_ADDRESS string = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
 // maps asset (e.g WETH) to networks (e.g ethereum and bsc)
 type UniswapV2Markets struct {
-	Asset map[string]map[string]Network
+	Asset map[string]map[string]*Network
 }
 
 // maps network (e.g ethereum) to pairs
 type Network struct {
-	Asset    string
-	Protocol string
-	Pairs    []UniswapV2EthPair
+	Asset        string
+	Protocol     string
+	Pairs        *[]UniswapV2EthPair
+	AllMarkets   *[]UniswapV2EthPair
+	CrossMarkets *[]UniswapV2EthPair
 }
 
 type UniswapV2EthPair struct {
@@ -98,7 +100,10 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 }
 
 func (uniswapMarkets *UniswapV2Markets) GetUniswapV2Markets(
-	client *ethclient.Client, addresses []string, queryContractAddress string, baseCurrencyAddress string,
+	client *ethclient.Client,
+	addresses []string,
+	queryContractAddress string,
+	baseCurrencyAddress string,
 ) (
 	[]UniswapV2EthPair, []UniswapV2EthPair, map[string][]UniswapV2EthPair, map[string][]UniswapV2EthPair) {
 	WETH := common.HexToAddress(WETH_ADDRESS)
@@ -153,6 +158,27 @@ func (uniswapMarkets *UniswapV2Markets) GetUniswapV2Markets(
 	return allMarketsFlat, crossMarkets, allMarketsByToken, crossMarketsByToken
 }
 
+func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
+	client *ethclient.Client,
+	addresses []string,
+	queryContractAddress string,
+	baseCurrencyAddress string,
+	asset string,
+	protocol string) {
+	// WETH := common.HexToAddress(WETH_ADDRESS)
+
+	// for every address, get markets
+	// markets is a list with all pairs on this network
+	allMarkets := [][]UniswapV2EthPair{}
+	for i := 0; i < len(addresses); i++ {
+		marketPairs := uniswapMarkets.uniswapV2MarketByFactory(client, addresses[i], queryContractAddress, baseCurrencyAddress)
+		allMarkets = append(allMarkets, marketPairs)
+	}
+
+	// uniswapMarkets.Asset[asset][protocol].AllMarkets = allMarkets
+
+}
+
 func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 	client *ethclient.Client,
 	asset string,
@@ -164,7 +190,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		log.Fatal(err)
 	}
 	pairAddresses := []common.Address{}
-	for _, market := range uniswapMarkets.Asset[asset][protocol].Pairs {
+	for _, market := range *uniswapMarkets.Asset[asset][protocol].Pairs {
 		pairAddresses = append(pairAddresses, market.PairAddress)
 	}
 	reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
@@ -172,12 +198,10 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		log.Fatal(err)
 	}
 
-	for i := 0; i < len(uniswapMarkets.Asset[asset][protocol].Pairs); i++ {
+	for i := 0; i < len(*uniswapMarkets.Asset[asset][protocol].Pairs); i++ {
 		// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
-		// (*markets)[i].Token0Balance = reserves[i][0]
-		// (*markets)[i].Token1Balance = reserves[i][1]
-		uniswapMarkets.Asset[asset][protocol].Pairs[i].Token0Balance = reserves[i][0]
-		uniswapMarkets.Asset[asset][protocol].Pairs[i].Token1Balance = reserves[i][1]
+		(*uniswapMarkets.Asset[asset][protocol].Pairs)[i].Token0Balance = reserves[i][0]
+		(*uniswapMarkets.Asset[asset][protocol].Pairs)[i].Token1Balance = reserves[i][1]
 	}
 
 }
