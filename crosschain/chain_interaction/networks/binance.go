@@ -38,13 +38,18 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, WBNB_ADDRESS_BSC, "WBNB", "bsc",
 	)
 
-	fmt.Printf("allMarkets: %d\n", len(*uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
-	fmt.Printf("crossMarkets: %d\n", len(*uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets))
+	fmt.Printf("allMarkets: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
+	fmt.Printf("crossMarkets: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets))
+	fmt.Println(uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets)
 
 	uniswapMarkets.UpdateReserves(client, "WBNB", "bsc", UNISWAP_QUERY_ADDRESS_BSC)
-	fmt.Println(*uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets)
+
+	for _, market := range uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets {
+		fmt.Println(*market)
+	}
 
 	// evaluate for atomic arbs
+	uniswapMarkets.EvaluateCrossMarkets()
 
 	wg.Done()
 	// crossMarkets := []
