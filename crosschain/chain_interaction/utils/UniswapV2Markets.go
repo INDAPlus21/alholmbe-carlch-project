@@ -65,6 +65,37 @@ func in(address string, tokens []Token) bool {
 	return false
 }
 
+func (uniswapMarkets *UniswapV2Markets) Setup() {
+
+	ethereum_WETH := Network{Asset: "WETH", Protocol: "ethereum"}
+	ethereum_WBNB := Network{Asset: "WBNB", Protocol: "ethereum"}
+	ethereum_WMATIC := Network{Asset: "WMATIC", Protocol: "ethereum"}
+
+	bsc_WETH := Network{Asset: "WETH", Protocol: "bsc"}
+	bsc_WBNB := Network{Asset: "WBNB", Protocol: "bsc"}
+	bsc_WMATIC := Network{Asset: "WMATIC", Protocol: "bsc"}
+
+	polygon_WETH := Network{Asset: "WETH", Protocol: "polygon"}
+	polygon_WBNB := Network{Asset: "WBNB", Protocol: "polygon"}
+	polygon_WMATIC := Network{Asset: "WMATIC", Protocol: "polygon"}
+
+	uniswapMarkets.Asset = make(map[string]map[string]*Network)
+	uniswapMarkets.Asset["WETH"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WETH"]["ethereum"] = &ethereum_WETH
+	uniswapMarkets.Asset["WETH"]["bsc"] = &bsc_WETH
+	uniswapMarkets.Asset["WETH"]["polygon"] = &polygon_WETH
+
+	uniswapMarkets.Asset["WBNB"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WBNB"]["ethereum"] = &ethereum_WBNB
+	uniswapMarkets.Asset["WBNB"]["bsc"] = &bsc_WBNB
+	uniswapMarkets.Asset["WBNB"]["polygon"] = &polygon_WBNB
+
+	uniswapMarkets.Asset["WMATIC"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WMATIC"]["ethereum"] = &ethereum_WMATIC
+	uniswapMarkets.Asset["WMATIC"]["bsc"] = &bsc_WMATIC
+	uniswapMarkets.Asset["WMATIC"]["polygon"] = &polygon_WMATIC
+}
+
 func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclient.Client,
 	address string, queryContractAddress string, tokensOfInterest []Token) []*UniswapV2EthPair {
 	uniswapQueryAddress := common.HexToAddress(queryContractAddress)

@@ -17,7 +17,7 @@ const PANCAKESWAP_FACTORY_ADDRESS_BSC string = "0xca143ce32fe78f1f7019d7d551a640
 const WBNB_ADDRESS_BSC string = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
 const UNISWAP_QUERY_ADDRESS_BSC string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A"
 
-func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.UniswapV2EthPair, wg *sync.WaitGroup) {
+func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
 	// get a provider
@@ -32,13 +32,15 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 		log.Fatal(err)
 	}
 
+	// the tokens we care about on this network
 	tokens := []utils.Token{
-		utils.Token{"WBNB", "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", "bsc"},
+		utils.Token{
+			Symbol:   "WBNB",
+			Address:  "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+			Protocol: "bsc"},
 		// utils.Token{"WETH", "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", "bsc"},
 	}
 
-	// get all markets
-	// instead of returning markets, mutate the market object itself
 	uniswapMarkets.UpdateMarkets(
 		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, tokens,
 	)
@@ -48,11 +50,7 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 
-	// for _, market := range uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets {
-	// 	fmt.Println(*market)
-	// }
-
-	// // evaluate for atomic arbs
+	// evaluate for atomic arbs
 	uniswapMarkets.EvaluateCrossMarkets()
 
 	for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
