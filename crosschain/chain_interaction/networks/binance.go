@@ -55,6 +55,10 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, ch chan map[string][]utils.
 	// // evaluate for atomic arbs
 	uniswapMarkets.EvaluateCrossMarkets()
 
+	for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
+		fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
+	}
+
 	wg.Done()
 	// crossMarkets := []
 

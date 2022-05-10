@@ -25,12 +25,20 @@ type UniswapV2Markets struct {
 
 // maps network (e.g ethereum) to pairs
 type Network struct {
-	Asset               string
-	Protocol            string
+	Asset                string
+	Protocol             string
+	Pairs                []*UniswapV2EthPair
+	AllMarkets           []*UniswapV2EthPair
+	CrossMarkets         []*UniswapV2EthPair
+	CrossMarketsFiltered []*UniswapV2EthPair
+	// CrossMarketsByToken map[string][]*UniswapV2EthPair
+	CrossMarketsByTokenFiltered map[string]*Market
+	CrossMarketsByToken         map[string]*Market
+}
+
+type Market struct {
 	Pairs               []*UniswapV2EthPair
-	AllMarkets          []*UniswapV2EthPair
-	CrossMarkets        []*UniswapV2EthPair
-	CrossMarketsByToken map[string][]*UniswapV2EthPair
+	CurrentArbitrageOpp *big.Float
 }
 
 type UniswapV2EthPair struct {
@@ -41,20 +49,13 @@ type UniswapV2EthPair struct {
 	Token1Balance *big.Int
 }
 
-type CrossedMarketDetails struct {
-	profit         *big.Int
-	volume         *big.Int
-	tokenAddress   common.Address
-	buyFromMarket  []*UniswapV2EthPair
-	sellFromMarket []*UniswapV2EthPair
-}
-
 type Token struct {
 	Symbol   string
 	Address  string
 	Protocol string
 }
 
+// helper function for seeing if a list contains something
 func in(address string, tokens []Token) bool {
 	for _, token := range tokens {
 		if address == token.Address {
@@ -106,7 +107,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 			pair := pairs[j]
 			pairAddress := pair[2]
 
-			if in(pair[0].String(), tokensOfInterest) && in(pair[1].String(), tokensOfInterest) {
+			if !in(pair[0].String(), tokensOfInterest) && !in(pair[1].String(), tokensOfInterest) {
 				// we don't care if none of the tokens in the pair is weth or wbnb
 				continue
 			}
@@ -169,12 +170,22 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 		}
 	}
 
+	for _, token := range tokensOfInterest {
+		uniswapMarkets.Asset[token.Symbol][token.Protocol].AllMarkets = allMarketsFlat
+
+	}
+
+	// uniswapMarkets.UpdateReserves(client, queryContractAddress, tokensOfInterest)
+
+	// only keep pairs with decent reserves
+
 	// a cross markets exists if the same market exists on 2+ places on 1 network
-	crossMarketsByToken := make(map[string][]*UniswapV2EthPair)
+	// crossMarketsByToken := make(map[string][]*UniswapV2EthPair)
+	crossMarketsByToken := make(map[string]*Market)
 	crossMarketsFlat := []*UniswapV2EthPair{}
 	for tokenAddress, markets := range allMarketsByToken {
 		if len(markets) > 1 {
-			crossMarketsByToken[tokenAddress] = markets
+			crossMarketsByToken[tokenAddress] = &Market{markets, big.NewFloat(0)}
 			crossMarketsFlat = append(crossMarketsFlat, markets...)
 		}
 	}
@@ -182,6 +193,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	for _, token := range tokensOfInterest {
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].AllMarkets = allMarketsFlat
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets = crossMarketsFlat
+		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsByTokenFiltered = make(map[string]*Market)
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsByToken = crossMarketsByToken
 	}
 
@@ -202,7 +214,6 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		for _, market := range uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets {
 			pairAddresses = append(pairAddresses, (*market).PairAddress)
 		}
-		fmt.Println(pairAddresses)
 
 		reserves, err := uniswapQuery.GetReservesByPairs(nil, pairAddresses)
 		if err != nil {
@@ -210,23 +221,80 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		}
 
 		for i := 0; i < len(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets); i++ {
+			// remove depending on the reserve balance
 			// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
 			(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets)[i].Token0Balance = reserves[i][0]
 			(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets)[i].Token1Balance = reserves[i][1]
+
+			uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsFiltered =
+				append(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsFiltered,
+					(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets)[i])
+
 		}
 	}
 
 }
 
 func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets() {
-	// bestCrossedMarkets := []CrossedMarketDetails{};
-	for tokenAddress, markets := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
-		fmt.Println(tokenAddress)
-		for _, market := range markets {
-			fmt.Println(market)
+	WBNB_ADDRESS := "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+	WBNB := common.HexToAddress(WBNB_ADDRESS)
+	_ = WBNB
+
+	for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
+		// fmt.Println(tokenAddress)
+		_ = tokenAddress
+		bnbPrices := []*big.Float{}
+		otherTokenPrices := []*big.Float{}
+		for _, market := range market.Pairs {
+			// fmt.Println(market)
+			if market.Token0Address == WBNB {
+				bnbPrice := new(big.Float).Quo(new(big.Float).SetInt(market.Token0Balance), new(big.Float).SetInt(market.Token1Balance))
+				otherTokenPrice := new(big.Float).Quo(new(big.Float).SetInt(market.Token1Balance), new(big.Float).SetInt(market.Token0Balance))
+				bnbPrices = append(bnbPrices, bnbPrice)
+				otherTokenPrices = append(otherTokenPrices, otherTokenPrice)
+			} else {
+				otherTokenPrice := new(big.Float).Quo(new(big.Float).SetInt(market.Token0Balance), new(big.Float).SetInt(market.Token1Balance))
+				bnbPrice := new(big.Float).Quo(new(big.Float).SetInt(market.Token1Balance), new(big.Float).SetInt(market.Token0Balance))
+				bnbPrices = append(bnbPrices, bnbPrice)
+				otherTokenPrices = append(otherTokenPrices, otherTokenPrice)
+			}
+
+		}
+
+		priceDiff0 := new(big.Float).Quo(otherTokenPrices[0], otherTokenPrices[1])
+		priceDiff1 := new(big.Float).Quo(otherTokenPrices[1], otherTokenPrices[0])
+		if priceDiff0.Cmp(priceDiff1) == 1 {
+			market.CurrentArbitrageOpp = priceDiff0
+		} else {
+			market.CurrentArbitrageOpp = priceDiff1
 		}
 	}
 
+}
+
+func getTokensIn(reserveIn *big.Int, reserveOut *big.Int, amountOut *big.Int) *big.Int {
+	fmt.Println("reserveIn:", reserveIn)
+	fmt.Println("amountOut:", amountOut)
+	numerator := reserveIn.Mul(reserveIn, amountOut)
+	fmt.Println("numerator:", numerator)
+	numerator = numerator.Mul(numerator, big.NewInt(1000))
+	fmt.Println("numerator:", numerator)
+	denominator := reserveOut.Sub(reserveOut, amountOut).Mul(reserveOut, big.NewInt(997))
+	fmt.Println("denominator:", denominator)
+	res := numerator.Div(numerator, denominator)
+	// res = res.Add(res, big.NewInt(1))
+
+	return res
+}
+
+func getTokensOut(reserveIn *big.Int, reserveOut *big.Int, amountIn *big.Int) *big.Int {
+	amountInWithFee := amountIn.Mul(amountIn, big.NewInt(997))
+	numerator := amountInWithFee.Mul(amountInWithFee, reserveOut)
+	denominator := reserveIn.Mul(reserveIn, big.NewInt(1000))
+	denominator = denominator.Add(denominator, amountInWithFee)
+	res := numerator.Div(numerator, denominator)
+
+	return res
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go
