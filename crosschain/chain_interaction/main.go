@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+  "fmt"
 
 	"chain_interaction/networks"
 	"chain_interaction/utils"
@@ -13,6 +14,7 @@ const SUSHISWAP_FACTORY_ADDRESS_BSC string = "0xc35DADB65012eC5796536bD9864eD877
 const WBNB_ADDRESS string = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
 
 func main() {
+
 	// setup
 	ethereum_WETH := utils.Network{Asset: "WETH", Protocol: "ethereum"}
 	ethereum_WBNB := utils.Network{Asset: "WBNB", Protocol: "ethereum"}
