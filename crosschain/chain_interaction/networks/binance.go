@@ -3,6 +3,7 @@ package networks
 import (
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"sync"
 
@@ -33,11 +34,15 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	}
 
 	// the tokens we care about on this network
+	var base, power = big.NewInt(10), big.NewInt(18)
+	base.Exp(base, power, nil)
 	tokens := []utils.Token{
 		utils.Token{
-			Symbol:   "WBNB",
-			Address:  "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-			Protocol: "bsc"},
+			Symbol:       "WBNB",
+			Address:      "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+			Protocol:     "bsc",
+			MinLiquidity: base, // 100 WBNB
+		},
 		// utils.Token{"WETH", "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", "bsc"},
 	}
 
@@ -51,11 +56,24 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 
 	// evaluate for atomic arbs
-	uniswapMarkets.EvaluateCrossMarkets()
+	uniswapMarkets.EvaluateCrossMarkets(tokens)
 
 	for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
-		fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
+		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
+			fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
+		}
 	}
+
+	// for i := 0; i < 50; i++ {
+	// 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
+	// 	for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
+	// 		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
+	// 			fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
+	// 		}
+	// 	}
+	// 	fmt.Println()
+	// 	time.Sleep(30 * time.Second)
+	// }
 
 	wg.Done()
 	// crossMarkets := []
