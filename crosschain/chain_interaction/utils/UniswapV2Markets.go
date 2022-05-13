@@ -56,16 +56,6 @@ type Token struct {
 	MinLiquidity *big.Int
 }
 
-// helper function for seeing if a list contains something
-func in(address string, tokens []Token) bool {
-	for _, token := range tokens {
-		if address == token.Address {
-			return true
-		}
-	}
-	return false
-}
-
 func (uniswapMarkets *UniswapV2Markets) Setup() {
 
 	ethereum_WETH := Network{Asset: "WETH", Protocol: "ethereum"}
@@ -140,7 +130,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 			pair := pairs[j]
 			pairAddress := pair[2]
 
-			if !in(pair[0].String(), tokensOfInterest) && !in(pair[1].String(), tokensOfInterest) {
+			if !In(pair[0].String(), tokensOfInterest) && !In(pair[1].String(), tokensOfInterest) {
 				// we don't care if none of the tokens in the pair is weth or wbnb
 				continue
 			}
@@ -266,7 +256,7 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 		var tokenOfInterestAddress common.Address = common.HexToAddress(token.Address)
 
 		for tokenAddress, market := range uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsByToken {
-			if !isLiquidEnough(market, tokenOfInterestAddress, token) {
+			if !IsLiquidEnough(market, tokenOfInterestAddress, token) {
 				continue
 			}
 
@@ -293,24 +283,6 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 		}
 	}
 
-}
-
-// determines if a markets is liquid enough
-func isLiquidEnough(market *Market, tokenOfInterestAddress common.Address, tokenOfInterest Token) bool {
-	if market.Pairs[0].Token0Address == tokenOfInterestAddress {
-
-		if market.Pairs[0].Token0Balance.Cmp(tokenOfInterest.MinLiquidity) == -1 ||
-			market.Pairs[1].Token0Balance.Cmp(tokenOfInterest.MinLiquidity) == -1 {
-			return false
-		}
-	} else {
-		if market.Pairs[0].Token1Balance.Cmp(tokenOfInterest.MinLiquidity) == -1 ||
-			market.Pairs[1].Token1Balance.Cmp(tokenOfInterest.MinLiquidity) == -1 {
-			return false
-		}
-	}
-
-	return true
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

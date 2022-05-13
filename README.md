@@ -2,6 +2,10 @@
 
 Written by Carl Chemnitz and Alexander Holmberg
 
+## architecture
+
+![Chess UI](architecture2.png)
+
 ## Summary
 
 Crypto arbitrage trading is a form of _arbitrage_ trading that utilizes the vast amount of _decentralized exchanges_ to make a profit with low to no risk. At the moment there are two parallel projects, `Atomic arbitrage` written in TypeScript and Solidity and `Cross-chain arbitrage` which is the main project and is written in GoLang and Solidity.

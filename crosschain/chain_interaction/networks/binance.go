@@ -2,16 +2,11 @@ package networks
 
 import (
 	"fmt"
-	"log"
 	"math/big"
-	"os"
 	"sync"
 	"time"
 
 	"chain_interaction/utils"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/joho/godotenv"
 )
 
 const SUSHISWAP_FACTORY_ADDRESS_BSC string = "0xc35DADB65012eC5796536bD9864eD8773aBc74C4"
@@ -22,17 +17,7 @@ const UNISWAP_QUERY_ADDRESS_BSC string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804C
 func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
-	// get a provider
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	rpc := os.Getenv("rpc_bsc")
-
-	client, err := ethclient.Dial(rpc)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := utils.GetClient("bsc")
 
 	// the tokens we care about on this network
 	var base, power = big.NewInt(10), big.NewInt(18)
@@ -44,7 +29,12 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 			Protocol:     "bsc",
 			MinLiquidity: base, // 100 WBNB
 		},
-		// utils.Token{"WETH", "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", "bsc"},
+		utils.Token{
+			Symbol:       "WETH",
+			Address:      "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+			Protocol:     "bsc",
+			MinLiquidity: base, // 1 WETH
+		},
 	}
 
 	uniswapMarkets.UpdateMarkets(
@@ -57,12 +47,11 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 	fmt.Println("initial reserve update on binance.")
 
-	// evaluate for atomic arbs
 	uniswapMarkets.EvaluateCrossMarkets(tokens)
 
 	for i := 0; i < 50; i++ {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-		fmt.Println("\nBINANCE:")
+		fmt.Println("\nWBNB (on bsc):")
 		for tokenAddress, market := range uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarketsByToken {
 			if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
 				fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)

@@ -2,16 +2,11 @@ package networks
 
 import (
 	"fmt"
-	"log"
 	"math/big"
-	"os"
 	"sync"
 	"time"
 
 	"chain_interaction/utils"
-
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/joho/godotenv"
 )
 
 const SUSHISWAP_FACTORY_ADDRESS_POLYGON string = "0xc35DADB65012eC5796536bD9864eD8773aBc74C4"
@@ -21,17 +16,7 @@ const UNISWAP_QUERY_ADDRESS_POLYGON string = "0xBc37182dA7E1f99f5Bd75196736BB2ae
 func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	polygonFactories := []string{QUICKSWAP_FACTORY_ADDRESS_POLYGON, SUSHISWAP_FACTORY_ADDRESS_POLYGON}
 
-	// get a provider
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	rpc := os.Getenv("rpc_polygon")
-
-	client, err := ethclient.Dial(rpc)
-	if err != nil {
-		log.Fatal(err)
-	}
+	client := utils.GetClient("polygon")
 
 	// the tokens we care about on this network
 	var base, power = big.NewInt(10), big.NewInt(18)
@@ -55,12 +40,11 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_POLYGON, tokens)
 	fmt.Println("initial reserve update on polygon.")
 
-	// evaluate for atomic arbs
 	uniswapMarkets.EvaluateCrossMarkets(tokens)
 
 	for i := 0; i < 50; i++ {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-		fmt.Println("\nPOLYGON:")
+		fmt.Println("\n WMATIC (on polygon):")
 		for tokenAddress, market := range uniswapMarkets.Asset["WMATIC"]["polygon"].CrossMarketsByToken {
 			if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
 				fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
