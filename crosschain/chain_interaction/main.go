@@ -20,8 +20,10 @@ func main() {
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
+	wg.Add(1)
 
 	go networks.Binance(&uniswapMarkets, wg)
+	go networks.Polygon(&uniswapMarkets, wg)
 
 	// for ethPairs := range ch1 {
 	// 	for k, v := range ethPairs {

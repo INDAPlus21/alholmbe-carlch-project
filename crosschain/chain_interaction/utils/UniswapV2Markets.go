@@ -13,8 +13,8 @@ import (
 )
 
 // useful for testing purposes, so we don't have to load all markets (takes time)
-const BATCH_COUNT_LIMIT int = 1000
-const UNISWAP_BATCH_SIZE int = 1000
+const BATCH_COUNT_LIMIT int = 100
+const UNISWAP_BATCH_SIZE int = 100
 
 const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
 
@@ -118,6 +118,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 		log.Fatal(err)
 	}
 	numberOfPairs := int(bigNum.Int64())
+	fmt.Printf("number of pairs: %d\n", numberOfPairs)
 
 	var x int
 	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
@@ -199,11 +200,6 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 				}
 			}
 		}
-	}
-
-	for _, token := range tokensOfInterest {
-		uniswapMarkets.Asset[token.Symbol][token.Protocol].AllMarkets = allMarketsFlat
-
 	}
 
 	// uniswapMarkets.UpdateReserves(client, queryContractAddress, tokensOfInterest)

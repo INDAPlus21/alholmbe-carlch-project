@@ -8,9 +8,11 @@ forge create --rpc-url $rpc_ropsten --private-key $pk2 src/UniswapQuery.sol:Unis
 DEPLOY:ETHEREUM
 forge create --rpc-url $rpc_ethereum --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
 
-
 DEPLOY:BSC
 forge create --rpc-url $rpc_bsc --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
+
+DEPLOY:POLYGON
+forge create --rpc-url $rpc_polygon --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
 
 
 EXAMPLE WITH CAST
