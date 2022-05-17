@@ -5,6 +5,7 @@ import (
 
 	"chain_interaction/networks"
 	"chain_interaction/utils"
+  "chain_interaction/interface"
 )
 
 // bsc
@@ -19,10 +20,11 @@ func main() {
 	uniswapMarkets.Setup()
 
 	wg := new(sync.WaitGroup)
-	wg.Add(2)
+	wg.Add(3)
 
 	go networks.Binance(&uniswapMarkets, wg)
 	go networks.Polygon(&uniswapMarkets, wg)
+  go ui.Update_screen(uniswapMarkets, wg)
 
 	// for ethPairs := range ch1 {
 	// 	for k, v := range ethPairs {
