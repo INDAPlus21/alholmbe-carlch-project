@@ -34,8 +34,7 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 		client, polygonFactories, UNISWAP_QUERY_ADDRESS_POLYGON, tokens,
 	)
 
-	fmt.Printf("allMarkets: %d\n", len(uniswapMarkets.Asset["WMATIC"]["polygon"].AllMarkets))
-	fmt.Printf("crossMarkets: %d\n", len(uniswapMarkets.Asset["WMATIC"]["polygon"].CrossMarkets))
+	fmt.Printf("all markets on polygon: %d\n", len(uniswapMarkets.Asset["WMATIC"]["polygon"].AllMarkets))
 
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_POLYGON, tokens)
 	fmt.Println("initial reserve update on polygon.")

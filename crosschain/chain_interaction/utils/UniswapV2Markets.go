@@ -56,6 +56,7 @@ type Token struct {
 	MinLiquidity *big.Int
 }
 
+// Setup is an initialization function that populates the UniswapV2Markets struct
 func (uniswapMarkets *UniswapV2Markets) Setup() {
 
 	ethereum_WETH := Network{Asset: "WETH", Protocol: "ethereum"}
@@ -145,14 +146,16 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 }
 
+// UpdateMarkets retrieves and structure market data from the chosen chain/network
+// client is connected to chain x and queryContractAddress is an instance of UniswapQuery.sol deployed on chain x
 func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	client *ethclient.Client,
 	factoryAddresses []string,
 	queryContractAddress string,
 	tokensOfInterest []Token) {
 	// WETH_ADDRESS := "0x2170Ed0880ac9A755fd29B2688956BD959F933F8"
-	WBNB_ADDRESS := "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
-	WBNB := common.HexToAddress(WBNB_ADDRESS)
+	NATIVE_CURRENCY_ADDRESS := tokensOfInterest[0].Address
+	NATIVE_CURRENCY := common.HexToAddress(NATIVE_CURRENCY_ADDRESS)
 
 	// for every address, get markets
 	// markets is a list with all pairs on this network
@@ -164,9 +167,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 		allMarkets = append(allMarkets, marketPairs)
 	}
 
-	// group markets by non weth token address
 	allMarketsByToken := map[string][]*UniswapV2EthPair{}
-	// a flat list of all markets
 	allMarketsFlat := []*UniswapV2EthPair{}
 
 	// groups all pairs into a dictionary with the non weth token as the key
@@ -174,7 +175,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	for i := 0; i < len(allMarkets); i++ {
 		for j := 0; j < len(allMarkets[i]); j++ {
 			allMarketsFlat = append(allMarketsFlat, allMarkets[i][j])
-			if allMarkets[i][j].Token0Address == WBNB {
+			if allMarkets[i][j].Token0Address == NATIVE_CURRENCY {
 				if _, ok := allMarketsByToken[allMarkets[i][j].Token1Address.String()]; ok {
 					allMarketsByToken[allMarkets[i][j].Token1Address.String()] =
 						append(allMarketsByToken[allMarkets[i][j].Token1Address.String()], allMarkets[i][j])

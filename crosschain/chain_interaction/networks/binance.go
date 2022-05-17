@@ -41,8 +41,7 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, tokens,
 	)
 
-	fmt.Printf("allMarkets: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
-	fmt.Printf("crossMarkets: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].CrossMarkets))
+	fmt.Printf("all markets on bsc: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
 
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 	fmt.Println("initial reserve update on binance.")
@@ -51,7 +50,9 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 
 	for i := 0; i < 50; i++ {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-		uniswapMarkets.UpdateScreen("WBNB", "bsc")
+		for _, token := range tokens {
+			uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol)
+		}
 		time.Sleep(10 * time.Second)
 	}
 
