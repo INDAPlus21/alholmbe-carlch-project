@@ -285,4 +285,26 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 
 }
 
+var cache map[string]*big.Float = make(map[string]*big.Float)
+
+func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string) {
+	// iterate and see if latest state has changed
+	reserveChanges := 0
+	for tokenAddress, market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
+		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
+			_, ok := cache[tokenAddress]
+			if ok && market.CurrentArbitrageOpp.Cmp(cache[tokenAddress]) != 0 {
+				fmt.Printf("%s at %s: %f\n", asset, tokenAddress, market.CurrentArbitrageOpp)
+				reserveChanges++
+			} else if !ok {
+				fmt.Printf("%s at %s: %f\n", asset, tokenAddress, market.CurrentArbitrageOpp)
+				reserveChanges++
+			}
+		}
+		cache[tokenAddress] = market.CurrentArbitrageOpp
+	}
+
+	fmt.Printf("reserve changes for %s on %s: %d\n", asset, protocol, reserveChanges)
+}
+
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

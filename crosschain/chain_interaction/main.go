@@ -3,9 +3,9 @@ package main
 import (
 	"sync"
 
+	// ui "chain_interaction/interface"
 	"chain_interaction/networks"
 	"chain_interaction/utils"
-  "chain_interaction/interface"
 )
 
 // bsc
@@ -24,7 +24,7 @@ func main() {
 
 	go networks.Binance(&uniswapMarkets, wg)
 	go networks.Polygon(&uniswapMarkets, wg)
-  go ui.Update_screen(uniswapMarkets, wg)
+	// go ui.UpdateScreen(&uniswapMarkets, wg)
 
 	// for ethPairs := range ch1 {
 	// 	for k, v := range ethPairs {

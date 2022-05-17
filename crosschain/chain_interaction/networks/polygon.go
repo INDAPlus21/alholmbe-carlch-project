@@ -44,14 +44,8 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 
 	for i := 0; i < 50; i++ {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-		fmt.Println("\n WMATIC (on polygon):")
-		for tokenAddress, market := range uniswapMarkets.Asset["WMATIC"]["polygon"].CrossMarketsByToken {
-			if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
-				fmt.Printf("%s: %f\n", tokenAddress, market.CurrentArbitrageOpp)
-			}
-		}
-		fmt.Println()
-		time.Sleep(30 * time.Second)
+		uniswapMarkets.UpdateScreen("WMATIC", "polygon")
+		time.Sleep(10 * time.Second)
 	}
 
 	wg.Done()
