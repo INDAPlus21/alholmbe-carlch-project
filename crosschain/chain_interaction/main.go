@@ -1,14 +1,24 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
 	"sync"
 
-	// ui "chain_interaction/interface"
+	ui "chain_interaction/interface"
 	"chain_interaction/networks"
 	"chain_interaction/utils"
 )
 
 func main() {
+	uiChoice := os.Args[1]
+	if uiChoice == "tui" {
+		cmd := exec.Command("tput", "civis")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+		fmt.Printf("%s", ui.CLEAR)
+	}
 
 	uniswapMarkets := utils.UniswapV2Markets{}
 
@@ -17,9 +27,11 @@ func main() {
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 
-	go networks.Binance(&uniswapMarkets)
-	go networks.Polygon(&uniswapMarkets)
-	go networks.Avalanche(&uniswapMarkets)
+	i := 0
+
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "polygon")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "avalanche")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "bsc")
 
 	wg.Wait()
 

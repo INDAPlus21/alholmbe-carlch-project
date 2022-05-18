@@ -10,12 +10,14 @@ import (
 	UniswapQuery "chain_interaction/UniswapQuery"
 	UniswapV2Factory "chain_interaction/generatedContracts"
 
+	ui "chain_interaction/interface"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 // useful for testing purposes, so we don't have to load all markets (takes time)
-const BATCH_COUNT_LIMIT int = 100
+const BATCH_COUNT_LIMIT int = 200
 const UNISWAP_BATCH_SIZE int = 100
 
 const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
@@ -116,19 +118,19 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 		log.Fatal(err)
 	}
 	numberOfPairs := int(bigNum.Int64())
-	fmt.Printf("number of pairs on this AMM: %d\n", numberOfPairs)
 
-	// var chosenLength int
-	// if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
-	// 	chosenLength = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
-	// } else {
-	// 	chosenLength = numberOfPairs
-	// }
+	var chosenLength int
+	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
+		chosenLength = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
+	} else {
+		chosenLength = numberOfPairs
+	}
 
-	for i := 0; i < numberOfPairs; i += UNISWAP_BATCH_SIZE {
+	for i := 0; i < chosenLength; i += UNISWAP_BATCH_SIZE {
 
 		pairs, err := uniswapQuery.GetPairsByRange(nil, factoryAddress, big.NewInt(int64(i)), big.NewInt(int64(i+UNISWAP_BATCH_SIZE)))
 		if err != nil {
+			// this happens when we try to access a pair that doesn't exist
 			fmt.Printf("revert at i = %d, factoryAddress = %s\n", i, factoryAddress)
 			log.Fatal(err)
 		}
@@ -139,10 +141,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 			if !In(pair[0].String(), tokensOfInterest) && !In(pair[1].String(), tokensOfInterest) {
 				// we don't care if none of the tokens in the pair are of interest
-				// fmt.Printf("We do not care about: %s at i=%d and j=%d\n", pairAddress.String(), i, j)
 				continue
-			} else {
-				// fmt.Printf("WE DO CARE ABOUT: %s at i=%d and j=%d\n", pairAddress.String(), i, j)
 			}
 
 			uniswapV2EthPair := &UniswapV2EthPair{pairAddress, pair[0], pair[1], big.NewInt(0), big.NewInt(0)}
@@ -282,14 +281,11 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 
 			priceDiff0 := new(big.Float).Quo(otherTokenPrices[0], otherTokenPrices[1])
 			priceDiff1 := new(big.Float).Quo(otherTokenPrices[1], otherTokenPrices[0])
-			// 1.1 as limit because above is unrealistic and probably indicates a scam token
+
+			// fake data to test UI
 			priceDiff0 = big.NewFloat(rand.Float64() + 1)
 			priceDiff1 = big.NewFloat(rand.Float64() + 1)
-			// if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.1)) == -1 {
-			// 	market.CurrentArbitrageOpp = priceDiff0
-			// } else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.1)) == -1 {
-			// 	market.CurrentArbitrageOpp = priceDiff1
-			// }
+
 			if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.5)) == -1 {
 				market.CurrentArbitrageOpp = priceDiff0
 			} else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.5)) == -1 {
@@ -320,6 +316,26 @@ func (uniswapMarkets *UniswapV2Markets) PrintOpportunities(asset string, protoco
 	}
 
 	fmt.Printf("reserve changes for %s on %s: %d\n", asset, protocol, reserveChanges)
+}
+
+var tuiCache map[string]*big.Float = make(map[string]*big.Float)
+
+func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string, i int) {
+	ops := 0
+	InitSets()
+	for tokenAddress, market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
+		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
+			_, ok := tuiCache[protocol+":"+tokenAddress]
+			if ok && market.CurrentArbitrageOpp.Cmp(tuiCache[protocol+":"+tokenAddress]) != 0 {
+				ops++
+			} else if !ok {
+				ops++
+			}
+		}
+		tuiCache[protocol+":"+tokenAddress] = market.CurrentArbitrageOpp
+
+	}
+	fmt.Printf("%s%s%s%s%s Opportunities found: %d\n", ui.Goto_xy(3+i, 0), ui.CLEARLN, ui.YELLOW, asset, ui.WHITE, ops)
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go
