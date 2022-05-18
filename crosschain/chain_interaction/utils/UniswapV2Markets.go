@@ -75,6 +75,9 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 
 	avalanche_WAVAX := Network{Asset: "WAVAX", Protocol: "avalanche"}
 
+	fantom_WFTM := Network{Asset: "WFTM", Protocol: "fantom"}
+	aurora_WAURORA := Network{Asset: "WAURORA", Protocol: "aurora"}
+
 	uniswapMarkets.Asset = make(map[string]map[string]*Network)
 	uniswapMarkets.Asset["WETH"] = make(map[string]*Network)
 	uniswapMarkets.Asset["WETH"]["ethereum"] = &ethereum_WETH
@@ -93,6 +96,12 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 
 	uniswapMarkets.Asset["WAVAX"] = make(map[string]*Network)
 	uniswapMarkets.Asset["WAVAX"]["avalanche"] = &avalanche_WAVAX
+
+	uniswapMarkets.Asset["WFTM"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WFTM"]["fantom"] = &fantom_WFTM
+
+	uniswapMarkets.Asset["WAURORA"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WAURORA"]["aurora"] = &aurora_WAURORA
 
 }
 
@@ -199,10 +208,6 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 			}
 		}
 	}
-
-	// for _, market := range allMarketsFlat {
-	// 	fmt.Println(market.PairAddress)
-	// }
 
 	// a cross markets exists if the same market exists on 2+ places on 1 network
 	crossMarketsByToken := make(map[string]*Market)
@@ -335,7 +340,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol stri
 		tuiCache[protocol+":"+tokenAddress] = market.CurrentArbitrageOpp
 
 	}
-	fmt.Printf("%s%s%s%s%s Opportunities found: %d\n", ui.Goto_xy(3+i, 0), ui.CLEARLN, ui.YELLOW, asset, ui.WHITE, ops)
+	fmt.Printf("%s%s%s%s on %s%s Opportunities found: %d\n", ui.Goto_xy(3+i, 0), ui.CLEARLN, ui.YELLOW, asset, protocol, ui.WHITE, ops)
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

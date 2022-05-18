@@ -23,12 +23,22 @@ var factories = map[string]map[string]string{
 		"quickswap": "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
 		"sushiswap": "0xc35DADB65012eC5796536bD9864eD8773aBc74C4",
 	},
+	"fantom": {
+		"spookyswap": "0x152ee697f2e276fa89e96742e9bb9ab1f2e61be3",
+		"spiritswap": "0xEF45d134b73241eDa7703fa787148D9C9F4950b0",
+	},
+	"aurora": {
+		"trisolaris": "0xc66f594268041db60507f00703b152492fb176e7",
+		"wannaswap":  "0x7928d4fea7b2c90c732c10aff59cf403f0c38246",
+	},
 }
 
 var DeployedUniswapQueryContracts = map[string]string{
 	"avalanche": "0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a",
 	"bsc":       "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A",
 	"polygon":   "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A",
+	"fantom":    "0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a",
+	"aurora":    "0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a",
 }
 
 func GetFactories(network string) []string {
@@ -39,6 +49,10 @@ func GetFactories(network string) []string {
 		return []string{factories[network]["traderjoe"], factories[network]["pangolin"]}
 	} else if network == "bsc" {
 		return []string{factories[network]["pancakeswap"], factories[network]["sushiswap"]}
+	} else if network == "fantom" {
+		return []string{factories[network]["spookyswap"], factories[network]["spiritswap"]}
+	} else if network == "aurora" {
+		return []string{factories[network]["trisolaris"], factories[network]["wannaswap"]}
 	}
 
 	return []string{}
@@ -70,6 +84,24 @@ func GetTokens(network string) []Token {
 				Address:      "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
 				Protocol:     "bsc",
 				MinLiquidity: minLiq, // 1 WBNB
+			},
+		}
+	} else if network == "fantom" {
+		return []Token{
+			{
+				Symbol:       "WFTM",
+				Address:      "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83",
+				Protocol:     "fantom",
+				MinLiquidity: minLiq, // 1 WFTM
+			},
+		}
+	} else if network == "aurora" {
+		return []Token{
+			{
+				Symbol:       "WAURORA",
+				Address:      "0x8BEc47865aDe3B172A928df8f990Bc7f2A3b9f79",
+				Protocol:     "aurora",
+				MinLiquidity: minLiq, // 1 AURORA
 			},
 		}
 	}
