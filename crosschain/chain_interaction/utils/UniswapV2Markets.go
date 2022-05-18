@@ -69,6 +69,8 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 	polygon_WBNB := Network{Asset: "WBNB", Protocol: "polygon"}
 	polygon_WMATIC := Network{Asset: "WMATIC", Protocol: "polygon"}
 
+	avalanche_WAVAX := Network{Asset: "WAVAX", Protocol: "avalanche"}
+
 	uniswapMarkets.Asset = make(map[string]map[string]*Network)
 	uniswapMarkets.Asset["WETH"] = make(map[string]*Network)
 	uniswapMarkets.Asset["WETH"]["ethereum"] = &ethereum_WETH
@@ -84,6 +86,10 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 	uniswapMarkets.Asset["WMATIC"]["ethereum"] = &ethereum_WMATIC
 	uniswapMarkets.Asset["WMATIC"]["bsc"] = &bsc_WMATIC
 	uniswapMarkets.Asset["WMATIC"]["polygon"] = &polygon_WMATIC
+
+	uniswapMarkets.Asset["WAVAX"] = make(map[string]*Network)
+	uniswapMarkets.Asset["WAVAX"]["avalanche"] = &avalanche_WAVAX
+
 }
 
 // uniswapV2MarketByFactory returns all pairs that exists on the given factory
@@ -138,6 +144,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 			marketPairs = append(marketPairs, uniswapV2EthPair)
 		}
+
 	}
 
 	return marketPairs
@@ -159,7 +166,6 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	for i := 0; i < len(factoryAddresses); i++ {
 		marketPairs := uniswapMarkets.uniswapV2MarketByFactory(client, factoryAddresses[i],
 			queryContractAddress, tokensOfInterest)
-
 		allMarkets = append(allMarkets, marketPairs)
 	}
 

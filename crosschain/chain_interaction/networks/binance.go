@@ -3,7 +3,6 @@ package networks
 import (
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"chain_interaction/utils"
@@ -14,7 +13,7 @@ const PANCAKESWAP_FACTORY_ADDRESS_BSC string = "0xca143ce32fe78f1f7019d7d551a640
 const WBNB_ADDRESS_BSC string = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
 const UNISWAP_QUERY_ADDRESS_BSC string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A"
 
-func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
+func Binance(uniswapMarkets *utils.UniswapV2Markets) {
 	bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
 	client := utils.GetClient("bsc")
@@ -48,14 +47,12 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 
 	uniswapMarkets.EvaluateCrossMarkets(tokens)
 
-	for i := 0; i < 50; i++ {
+	for {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 		for _, token := range tokens {
 			uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol)
 		}
 		time.Sleep(10 * time.Second)
 	}
-
-	wg.Done()
 
 }

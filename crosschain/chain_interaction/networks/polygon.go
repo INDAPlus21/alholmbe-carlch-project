@@ -3,7 +3,6 @@ package networks
 import (
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"chain_interaction/utils"
@@ -13,7 +12,7 @@ const SUSHISWAP_FACTORY_ADDRESS_POLYGON string = "0xc35DADB65012eC5796536bD9864e
 const QUICKSWAP_FACTORY_ADDRESS_POLYGON string = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"
 const UNISWAP_QUERY_ADDRESS_POLYGON string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A"
 
-func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
+func Polygon(uniswapMarkets *utils.UniswapV2Markets) {
 	polygonFactories := []string{QUICKSWAP_FACTORY_ADDRESS_POLYGON, SUSHISWAP_FACTORY_ADDRESS_POLYGON}
 
 	client := utils.GetClient("polygon")
@@ -41,12 +40,10 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 
 	uniswapMarkets.EvaluateCrossMarkets(tokens)
 
-	for i := 0; i < 50; i++ {
+	for {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 		uniswapMarkets.UpdateScreen("WMATIC", "polygon")
 		time.Sleep(10 * time.Second)
 	}
-
-	wg.Done()
 
 }

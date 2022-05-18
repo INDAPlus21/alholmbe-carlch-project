@@ -9,82 +9,6 @@
     ]
   },
   "files": {
-    "/Users/alexander/skola/alholmbe-carlch-project/crosschain/chain_interaction/contracts/lib/ds-test/src/test.sol": {
-      "lastModificationDate": 1651673970781,
-      "contentHash": "82a8604fe648c30a9bd56444368704f0",
-      "sourceName": "lib/ds-test/src/test.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs"
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [],
-      "versionRequirement": ">=0.5.0",
-      "artifacts": {
-        "DSTest": {
-          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "test.sol/DSTest.0.8.13.json"
-        }
-      }
-    },
-    "/Users/alexander/skola/alholmbe-carlch-project/crosschain/chain_interaction/contracts/src/Contract.sol": {
-      "lastModificationDate": 1651674163458,
-      "contentHash": "67cafcc16d14c568f6f4edd0721c426b",
-      "sourceName": "src/Contract.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs"
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [
-        "lib/ds-test/src/test.sol"
-      ],
-      "versionRequirement": "=0.8.13",
-      "artifacts": {
-        "Contract": {
-          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "Contract.sol/Contract.json"
-        }
-      }
-    },
     "/Users/alexander/skola/alholmbe-carlch-project/crosschain/chain_interaction/contracts/src/UniswapQuery.sol": {
       "lastModificationDate": 1651674058815,
       "contentHash": "6f6ba6797f3a0a764e3fef2176208110",
@@ -125,46 +49,6 @@
         },
         "UniswapV2Factory": {
           "0.8.13+commit.abaa5c0e.Darwin.appleclang": "UniswapQuery.sol/UniswapV2Factory.json"
-        }
-      }
-    },
-    "/Users/alexander/skola/alholmbe-carlch-project/crosschain/chain_interaction/contracts/src/test/UniswapQuery.t.sol": {
-      "lastModificationDate": 1651674413087,
-      "contentHash": "418cd150d12e63dd6ab42066b24ebe9e",
-      "sourceName": "src/test/UniswapQuery.t.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "bytecodeHash": "ipfs"
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [
-        "lib/ds-test/src/test.sol",
-        "src/UniswapQuery.sol"
-      ],
-      "versionRequirement": "=0.8.13",
-      "artifacts": {
-        "UniswapQueryTest": {
-          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "UniswapQuery.t.sol/UniswapQueryTest.json"
         }
       }
     }

@@ -1,0 +1,56 @@
+{
+  "abi": [],
+  "bytecode": {
+    "object": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212207137bce4e216cc434b03664cd8a8f30bc3c1e321925b47b7bfd2d0006f5d876c64736f6c634300080a0033",
+    "sourceMap": "64:20:0:-:0;;;;;;;;;;;;;;;;;;;",
+    "linkReferences": {}
+  },
+  "deployedBytecode": {
+    "object": "0x6080604052600080fdfea26469706673582212207137bce4e216cc434b03664cd8a8f30bc3c1e321925b47b7bfd2d0006f5d876c64736f6c634300080a0033",
+    "sourceMap": "64:20:0:-:0;;;;;",
+    "linkReferences": {}
+  },
+  "ast": {
+    "absolutePath": "/Users/alexander/skola/alholmbe-carlch-project/contracts/src/Contract.sol",
+    "exportedSymbols": {
+      "Contract": [
+        2
+      ]
+    },
+    "id": 3,
+    "license": "UNLICENSED",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 1,
+        "literals": [
+          "solidity",
+          "0.8",
+          ".10"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "39:23:0"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "Contract",
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "fullyImplemented": true,
+        "id": 2,
+        "linearizedBaseContracts": [
+          2
+        ],
+        "name": "Contract",
+        "nameLocation": "73:8:0",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 3,
+        "src": "64:20:0",
+        "usedErrors": []
+      }
+    ],
+    "src": "39:46:0"
+  }
+}

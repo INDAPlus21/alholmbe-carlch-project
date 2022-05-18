@@ -15,10 +15,11 @@ func main() {
 	uniswapMarkets.Setup()
 
 	wg := new(sync.WaitGroup)
-	wg.Add(3)
+	wg.Add(1)
 
-	go networks.Binance(&uniswapMarkets, wg)
-	go networks.Polygon(&uniswapMarkets, wg)
+	go networks.Binance(&uniswapMarkets)
+	go networks.Polygon(&uniswapMarkets)
+	go networks.Avalanche(&uniswapMarkets)
 
 	wg.Wait()
 
