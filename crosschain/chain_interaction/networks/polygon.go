@@ -42,7 +42,8 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets) {
 
 	for {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-		uniswapMarkets.UpdateScreen("WMATIC", "polygon")
+		uniswapMarkets.EvaluateCrossMarkets(tokens)
+		uniswapMarkets.PrintOpportunities("WMATIC", "polygon")
 		time.Sleep(10 * time.Second)
 	}
 

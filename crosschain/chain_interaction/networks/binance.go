@@ -49,8 +49,9 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets) {
 
 	for {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
+		uniswapMarkets.EvaluateCrossMarkets(tokens)
 		for _, token := range tokens {
-			uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol)
+			uniswapMarkets.PrintOpportunities(token.Symbol, token.Protocol)
 		}
 		time.Sleep(10 * time.Second)
 	}

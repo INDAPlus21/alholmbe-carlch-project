@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"math/rand"
+	"time"
 
 	UniswapQuery "chain_interaction/UniswapQuery"
 	UniswapV2Factory "chain_interaction/generatedContracts"
@@ -116,14 +118,14 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 	numberOfPairs := int(bigNum.Int64())
 	fmt.Printf("number of pairs on this AMM: %d\n", numberOfPairs)
 
-	var chosenLength int
-	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
-		chosenLength = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
-	} else {
-		chosenLength = numberOfPairs
-	}
+	// var chosenLength int
+	// if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
+	// 	chosenLength = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
+	// } else {
+	// 	chosenLength = numberOfPairs
+	// }
 
-	for i := 0; i < chosenLength; i += UNISWAP_BATCH_SIZE {
+	for i := 0; i < numberOfPairs; i += UNISWAP_BATCH_SIZE {
 
 		pairs, err := uniswapQuery.GetPairsByRange(nil, factoryAddress, big.NewInt(int64(i)), big.NewInt(int64(i+UNISWAP_BATCH_SIZE)))
 		if err != nil {
@@ -137,7 +139,10 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 			if !In(pair[0].String(), tokensOfInterest) && !In(pair[1].String(), tokensOfInterest) {
 				// we don't care if none of the tokens in the pair are of interest
+				// fmt.Printf("We do not care about: %s at i=%d and j=%d\n", pairAddress.String(), i, j)
 				continue
+			} else {
+				// fmt.Printf("WE DO CARE ABOUT: %s at i=%d and j=%d\n", pairAddress.String(), i, j)
 			}
 
 			uniswapV2EthPair := &UniswapV2EthPair{pairAddress, pair[0], pair[1], big.NewInt(0), big.NewInt(0)}
@@ -196,6 +201,10 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 		}
 	}
 
+	// for _, market := range allMarketsFlat {
+	// 	fmt.Println(market.PairAddress)
+	// }
+
 	// a cross markets exists if the same market exists on 2+ places on 1 network
 	crossMarketsByToken := make(map[string]*Market)
 	crossMarketsFlat := []*UniswapV2EthPair{}
@@ -248,6 +257,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 
 // EvaluateCrossMarkets finds the current "spreads" for a given pair, in other words the available arbitrages
 func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []Token) {
+	rand.Seed(time.Now().UnixNano())
 
 	for _, token := range tokensOfInterest {
 		var tokenOfInterestAddress common.Address = common.HexToAddress(token.Address)
@@ -272,9 +282,17 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 
 			priceDiff0 := new(big.Float).Quo(otherTokenPrices[0], otherTokenPrices[1])
 			priceDiff1 := new(big.Float).Quo(otherTokenPrices[1], otherTokenPrices[0])
-			if priceDiff0.Cmp(priceDiff1) == 1 {
+			// 1.1 as limit because above is unrealistic and probably indicates a scam token
+			priceDiff0 = big.NewFloat(rand.Float64() + 1)
+			priceDiff1 = big.NewFloat(rand.Float64() + 1)
+			// if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.1)) == -1 {
+			// 	market.CurrentArbitrageOpp = priceDiff0
+			// } else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.1)) == -1 {
+			// 	market.CurrentArbitrageOpp = priceDiff1
+			// }
+			if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.5)) == -1 {
 				market.CurrentArbitrageOpp = priceDiff0
-			} else {
+			} else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.5)) == -1 {
 				market.CurrentArbitrageOpp = priceDiff1
 			}
 		}
@@ -285,12 +303,12 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 var cache map[string]*big.Float = make(map[string]*big.Float)
 
 // UpdateScreen is just printing opportunities in the terminal
-func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string) {
+func (uniswapMarkets *UniswapV2Markets) PrintOpportunities(asset string, protocol string) {
 	reserveChanges := 0
 	for tokenAddress, market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
 		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
-			_, ok := cache[tokenAddress]
-			if ok && market.CurrentArbitrageOpp.Cmp(cache[tokenAddress]) != 0 {
+			_, ok := cache[protocol+":"+tokenAddress]
+			if ok && market.CurrentArbitrageOpp.Cmp(cache[protocol+":"+tokenAddress]) != 0 {
 				fmt.Printf("%s at %s: %f\n", asset, tokenAddress, market.CurrentArbitrageOpp)
 				reserveChanges++
 			} else if !ok {
@@ -298,7 +316,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol stri
 				reserveChanges++
 			}
 		}
-		cache[tokenAddress] = market.CurrentArbitrageOpp
+		cache[protocol+":"+tokenAddress] = market.CurrentArbitrageOpp
 	}
 
 	fmt.Printf("reserve changes for %s on %s: %d\n", asset, protocol, reserveChanges)
