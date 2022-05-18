@@ -1,7 +1,7 @@
 package networks
 
 import (
-	"fmt"
+	//"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -14,7 +14,7 @@ const PANCAKESWAP_FACTORY_ADDRESS_BSC string = "0xca143ce32fe78f1f7019d7d551a640
 const WBNB_ADDRESS_BSC string = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
 const UNISWAP_QUERY_ADDRESS_BSC string = "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A"
 
-func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
+func Binance(uniswapMarkets *utils.UniswapV2Markets, i *int, wg *sync.WaitGroup) {
 	bscFactories := []string{PANCAKESWAP_FACTORY_ADDRESS_BSC, SUSHISWAP_FACTORY_ADDRESS_BSC}
 
 	client := utils.GetClient("bsc")
@@ -41,19 +41,22 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 		client, bscFactories, UNISWAP_QUERY_ADDRESS_BSC, tokens,
 	)
 
-	fmt.Printf("all markets on bsc: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
+	// fmt.Printf("all markets on bsc: %d\n", len(uniswapMarkets.Asset["WBNB"]["bsc"].AllMarkets))
 
 	uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
-	fmt.Println("initial reserve update on binance.")
+	// fmt.Println("initial reserve update on binance.")
 
 	uniswapMarkets.EvaluateCrossMarkets(tokens)
-
-	for i := 0; i < 50; i++ {
+  y := *i
+  *i += 2
+	for {
 		uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_BSC, tokens)
 		for _, token := range tokens {
-			uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol)
+		  uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol, y)
+      y++
 		}
-		time.Sleep(10 * time.Second)
+    y -= 2
+		time.Sleep(2 * time.Second)
 	}
 
 	wg.Done()

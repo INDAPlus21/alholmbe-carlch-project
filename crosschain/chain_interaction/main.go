@@ -2,8 +2,11 @@ package main
 
 import (
 	"sync"
+  "os"
+  "os/exec"
+  "fmt"
 
-	// ui "chain_interaction/interface"
+  "chain_interaction/interface"
 	"chain_interaction/networks"
 	"chain_interaction/utils"
 )
@@ -14,17 +17,24 @@ const SUSHISWAP_FACTORY_ADDRESS_BSC string = "0xc35DADB65012eC5796536bD9864eD877
 const WBNB_ADDRESS string = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
 
 func main() {
+  cmd := exec.Command("tput", "civis")
+  cmd.Stdout = os.Stdout
+  cmd.Run()
+
+  fmt.Printf("%s",ui.CLEAR)
 
 	uniswapMarkets := utils.UniswapV2Markets{}
 
 	uniswapMarkets.Setup()
 
 	wg := new(sync.WaitGroup)
-	wg.Add(3)
+	wg.Add(2)
 
-	go networks.Binance(&uniswapMarkets, wg)
-	go networks.Polygon(&uniswapMarkets, wg)
-	// go ui.UpdateScreen(&uniswapMarkets, wg)
+  i := 0;
+	go networks.Binance(&uniswapMarkets, &i, wg)
+	go networks.Polygon(&uniswapMarkets, &i, wg)
+	go networks.Avalanche(&uniswapMarkets, &i, wg)
+	// go ui.Update_screen(&uniswapMarkets, e, wg)
 
 	// for ethPairs := range ch1 {
 	// 	for k, v := range ethPairs {

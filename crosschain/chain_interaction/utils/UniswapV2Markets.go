@@ -8,6 +8,7 @@ import (
 	UniswapQuery "chain_interaction/UniswapQuery"
 	UniswapV2Factory "chain_interaction/generatedContracts"
 
+  ui "chain_interaction/interface"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -71,6 +72,8 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 	polygon_WBNB := Network{Asset: "WBNB", Protocol: "polygon"}
 	polygon_WMATIC := Network{Asset: "WMATIC", Protocol: "polygon"}
 
+  avalanche_WAVAX := Network{Asset: "WAVAX", Protocol: "avalanche"}
+
 	uniswapMarkets.Asset = make(map[string]map[string]*Network)
 	uniswapMarkets.Asset["WETH"] = make(map[string]*Network)
 	uniswapMarkets.Asset["WETH"]["ethereum"] = &ethereum_WETH
@@ -86,6 +89,9 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 	uniswapMarkets.Asset["WMATIC"]["ethereum"] = &ethereum_WMATIC
 	uniswapMarkets.Asset["WMATIC"]["bsc"] = &bsc_WMATIC
 	uniswapMarkets.Asset["WMATIC"]["polygon"] = &polygon_WMATIC
+
+  uniswapMarkets.Asset["WAVAX"] = make(map[string]*Network)
+  uniswapMarkets.Asset["WAVAX"]["avalanche"] = &avalanche_WAVAX
 }
 
 func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclient.Client,
@@ -109,7 +115,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 		log.Fatal(err)
 	}
 	numberOfPairs := int(bigNum.Int64())
-	fmt.Printf("number of pairs: %d\n", numberOfPairs)
+	// fmt.Printf("number of pairs: %d\n", numberOfPairs)
 
 	var x int
 	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
@@ -286,26 +292,18 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 
 }
 
-var cache map[string]*big.Float = make(map[string]*big.Float)
+//var cache map[string]*big.Float = make(map[string]*big.Float)
 
-func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string) {
-	// iterate and see if latest state has changed
-	reserveChanges := 0
-	for tokenAddress, market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
-		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
-			_, ok := cache[tokenAddress]
-			if ok && market.CurrentArbitrageOpp.Cmp(cache[tokenAddress]) != 0 {
-				fmt.Printf("%s at %s: %f\n", asset, tokenAddress, market.CurrentArbitrageOpp)
-				reserveChanges++
-			} else if !ok {
-				fmt.Printf("%s at %s: %f\n", asset, tokenAddress, market.CurrentArbitrageOpp)
-				reserveChanges++
-			}
-		}
-		cache[tokenAddress] = market.CurrentArbitrageOpp
-	}
-
-	fmt.Printf("reserve changes for %s on %s: %d\n", asset, protocol, reserveChanges)
+func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string, i int) {
+  ops := 0
+  // var chache map[string]*big.Float = make(map[string]*big.Float)
+	InitSets()
+  for _,market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
+    if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {
+      ops++
+    }
+  }
+  fmt.Printf("%s%s%s%s%s Oppertunities found: %d\n",ui.Goto_xy(3+i, 0),ui.CLEARLN,ui.YELLOW,asset,ui.WHITE,ops);
 }
 
 // abigen --bin=./builds/UniswapQuery.bin --abi=./builds/UniswapQuery.abi --pkg=generatedContracts --out=./generatedContracts/UniswapQuery.go

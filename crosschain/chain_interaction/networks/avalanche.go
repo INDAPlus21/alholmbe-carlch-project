@@ -1,7 +1,7 @@
 package networks
 
 import (
-    "fmt"
+    // "fmt"
     "math/big"
     "sync"
     "time"
@@ -14,7 +14,7 @@ const TRADERJOE_FACTORY_ADDRESS_AVALANCHE string = "0x9ad6c38be94206ca50bb0d9078
 const WAVAX_ADDRESS_AVALANCHE string = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
 const UNISWAP_QUERY_ADDRESS_AVALANCHE string = "0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a"
 
-func Avalanche(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
+func Avalanche(uniswapMarkets *utils.UniswapV2Markets, i *int, wg *sync.WaitGroup) {
     avalancheFactories := []string{TRADERJOE_FACTORY_ADDRESS_AVALANCHE, PANGOLIN_FACTORY_ADDRESS_AVALANCHE}
 
     client := utils.GetClient("avalanche")
@@ -35,19 +35,20 @@ func Avalanche(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
         client, avalancheFactories, UNISWAP_QUERY_ADDRESS_AVALANCHE, tokens,
     )
 
-    fmt.Printf("all markets on avalanche: %d\n", len(uniswapMarkets.Asset["WAVAX"]["avalanche"].AllMarkets))
+    // fmt.Printf("all markets on avalanche: %d\n", len(uniswapMarkets.Asset["WAVAX"]["avalanche"].AllMarkets))
 
     uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_AVALANCHE, tokens)
-    fmt.Println("initial reserve update on avalanche.")
+    // fmt.Println("initial reserve update on avalanche.")
 
     uniswapMarkets.EvaluateCrossMarkets(tokens)
-
-    for i := 0; i < 50; i++ {
+    y := *i
+    *i++
+    for {
         uniswapMarkets.UpdateReserves(client, UNISWAP_QUERY_ADDRESS_AVALANCHE, tokens)
         for _, token := range tokens {
-            uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol)
+            uniswapMarkets.UpdateScreen(token.Symbol, token.Protocol,y)
         }
-        time.Sleep(10 * time.Second)
+        time.Sleep(2 * time.Second)
     }
 
     wg.Done()

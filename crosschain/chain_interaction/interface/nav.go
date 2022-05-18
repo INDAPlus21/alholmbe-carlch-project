@@ -14,6 +14,6 @@ const (
   YELLOW       = "\033[33m"
 )
 
-func goto_xy(x, y int) string {
+func Goto_xy(x, y int) string {
   return fmt.Sprintf("\033[%d;%dH",x,y)
 }
