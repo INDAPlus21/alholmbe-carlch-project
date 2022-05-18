@@ -17,6 +17,12 @@ forge create --rpc-url $rpc_polygon --private-key $pk2 src/UniswapQuery.sol:Unis
 DEPLOY:AVALANCHE
 forge create --rpc-url $rpc_avalanche --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
 
+DEPLOY:FANTOM
+forge create --rpc-url $rpc_fantom --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
+
+DEPLOY:AURORA
+forge create --rpc-url $rpc_aurora --private-key $pk2 src/UniswapQuery.sol:UniswapQuery
+
 
 EXAMPLE WITH CAST
 cast abi-encode "constructor(address,int256,uint256,uint256,bool,address)" 0xECe365B379E1dD183B20fc5f022230C044d51404 4500000000000 1649698560 2 true 0x167c2bF7fdd366488BD5C552a232aEB1Cdee518A
