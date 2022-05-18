@@ -18,22 +18,19 @@ const UNISWAP_BATCH_SIZE int = 100
 
 const MY_ADDRESS string = "0x30429A2FfAE3bE74032B6ADD7ac4A971AbAd4d02"
 
-// maps asset (e.g WETH) to networks (e.g ethereum and bsc)
+// maps asset (e.g WETH) to networks (e.g ethereum or bsc)
 type UniswapV2Markets struct {
 	Asset map[string]map[string]*Network
 }
 
-// maps network (e.g ethereum) to pairs
+// maps network (e.g ethereum) to pairs (e.g WETH/USDC)
 type Network struct {
-	Asset                string
-	Protocol             string
-	Pairs                []*UniswapV2EthPair
-	AllMarkets           []*UniswapV2EthPair
-	CrossMarkets         []*UniswapV2EthPair
-	CrossMarketsFiltered []*UniswapV2EthPair
-	// CrossMarketsByToken map[string][]*UniswapV2EthPair
-	CrossMarketsByTokenFiltered map[string]*Market
-	CrossMarketsByToken         map[string]*Market
+	Asset               string
+	Protocol            string
+	Pairs               []*UniswapV2EthPair
+	AllMarkets          []*UniswapV2EthPair
+	CrossMarkets        []*UniswapV2EthPair
+	CrossMarketsByToken map[string]*Market
 }
 
 type Market struct {
@@ -57,6 +54,7 @@ type Token struct {
 }
 
 // Setup is an initialization function that populates the UniswapV2Markets struct
+// The chosen values are arbitrary
 func (uniswapMarkets *UniswapV2Markets) Setup() {
 
 	ethereum_WETH := Network{Asset: "WETH", Protocol: "ethereum"}
@@ -88,12 +86,13 @@ func (uniswapMarkets *UniswapV2Markets) Setup() {
 	uniswapMarkets.Asset["WMATIC"]["polygon"] = &polygon_WMATIC
 }
 
+// uniswapV2MarketByFactory returns all pairs that exists on the given factory
+// read more in the readme about what a factory is in this context
 func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclient.Client,
 	address string, queryContractAddress string, tokensOfInterest []Token) []*UniswapV2EthPair {
 	uniswapQueryAddress := common.HexToAddress(queryContractAddress)
 	factoryAddress := common.HexToAddress(address)
 
-	// list with all marketPairs
 	marketPairs := []*UniswapV2EthPair{}
 	uniswapV2Factory, err := UniswapV2Factory.NewGeneratedContracts(factoryAddress, client)
 	if err != nil {
@@ -109,20 +108,19 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 		log.Fatal(err)
 	}
 	numberOfPairs := int(bigNum.Int64())
-	fmt.Printf("number of pairs: %d\n", numberOfPairs)
+	fmt.Printf("number of pairs on this AMM: %d\n", numberOfPairs)
 
-	var x int
+	var chosenLength int
 	if numberOfPairs > UNISWAP_BATCH_SIZE*BATCH_COUNT_LIMIT {
-		x = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
+		chosenLength = UNISWAP_BATCH_SIZE * BATCH_COUNT_LIMIT
 	} else {
-		x = numberOfPairs
+		chosenLength = numberOfPairs
 	}
 
-	for i := 0; i < x; i += UNISWAP_BATCH_SIZE {
-		// get pairs from the network
+	for i := 0; i < chosenLength; i += UNISWAP_BATCH_SIZE {
+
 		pairs, err := uniswapQuery.GetPairsByRange(nil, factoryAddress, big.NewInt(int64(i)), big.NewInt(int64(i+UNISWAP_BATCH_SIZE)))
 		if err != nil {
-			// this happens because something is weird in the sushiswap factory contract
 			fmt.Printf("revert at i = %d, factoryAddress = %s\n", i, factoryAddress)
 			log.Fatal(err)
 		}
@@ -132,7 +130,7 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 			pairAddress := pair[2]
 
 			if !In(pair[0].String(), tokensOfInterest) && !In(pair[1].String(), tokensOfInterest) {
-				// we don't care if none of the tokens in the pair is weth or wbnb
+				// we don't care if none of the tokens in the pair are of interest
 				continue
 			}
 
@@ -146,19 +144,17 @@ func (uniswapMarkets *UniswapV2Markets) uniswapV2MarketByFactory(client *ethclie
 
 }
 
-// UpdateMarkets retrieves and structure market data from the chosen chain/network
+// UpdateMarkets retrieves and structures market data from the chosen chain/network
 // client is connected to chain x and queryContractAddress is an instance of UniswapQuery.sol deployed on chain x
 func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	client *ethclient.Client,
 	factoryAddresses []string,
 	queryContractAddress string,
 	tokensOfInterest []Token) {
-	// WETH_ADDRESS := "0x2170Ed0880ac9A755fd29B2688956BD959F933F8"
 	NATIVE_CURRENCY_ADDRESS := tokensOfInterest[0].Address
 	NATIVE_CURRENCY := common.HexToAddress(NATIVE_CURRENCY_ADDRESS)
 
-	// for every address, get markets
-	// markets is a list with all pairs on this network
+	// for every factory address, get it's markets
 	allMarkets := [][]*UniswapV2EthPair{}
 	for i := 0; i < len(factoryAddresses); i++ {
 		marketPairs := uniswapMarkets.uniswapV2MarketByFactory(client, factoryAddresses[i],
@@ -170,7 +166,8 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	allMarketsByToken := map[string][]*UniswapV2EthPair{}
 	allMarketsFlat := []*UniswapV2EthPair{}
 
-	// groups all pairs into a dictionary with the non weth token as the key
+	// groups all pairs into a dictionary with the non-interesting token as the key
+	// also create a flat list of all markets
 	// O(n^2) doesn't matter, this function will only run on startup
 	for i := 0; i < len(allMarkets); i++ {
 		for j := 0; j < len(allMarkets[i]); j++ {
@@ -193,12 +190,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 		}
 	}
 
-	// uniswapMarkets.UpdateReserves(client, queryContractAddress, tokensOfInterest)
-
-	// only keep pairs with decent reserves
-
 	// a cross markets exists if the same market exists on 2+ places on 1 network
-	// crossMarketsByToken := make(map[string][]*UniswapV2EthPair)
 	crossMarketsByToken := make(map[string]*Market)
 	crossMarketsFlat := []*UniswapV2EthPair{}
 	for tokenAddress, markets := range allMarketsByToken {
@@ -211,12 +203,12 @@ func (uniswapMarkets *UniswapV2Markets) UpdateMarkets(
 	for _, token := range tokensOfInterest {
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].AllMarkets = allMarketsFlat
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets = crossMarketsFlat
-		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsByTokenFiltered = make(map[string]*Market)
 		uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarketsByToken = crossMarketsByToken
 	}
 
 }
 
+// UpdateReserves retrieves the current token reserves for a pair from the chosen factory
 func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 	client *ethclient.Client,
 	queryContractAddress string,
@@ -239,7 +231,7 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 		}
 
 		for i := 0; i < len(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets); i++ {
-			// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is last interaction
+			// reserve[0] is token0s reserve, reserve[1] is token1s reserve, reserve[2] is the timestamp of last interaction
 			(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets)[i].Token0Balance = reserves[i][0]
 			(uniswapMarkets.Asset[token.Symbol][token.Protocol].CrossMarkets)[i].Token1Balance = reserves[i][1]
 
@@ -248,10 +240,8 @@ func (uniswapMarkets *UniswapV2Markets) UpdateReserves(
 
 }
 
+// EvaluateCrossMarkets finds the current "spreads" for a given pair, in other words the available arbitrages
 func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []Token) {
-	WBNB_ADDRESS := "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
-	WBNB := common.HexToAddress(WBNB_ADDRESS)
-	_ = WBNB
 
 	for _, token := range tokensOfInterest {
 		var tokenOfInterestAddress common.Address = common.HexToAddress(token.Address)
@@ -288,8 +278,8 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 
 var cache map[string]*big.Float = make(map[string]*big.Float)
 
+// UpdateScreen is just printing opportunities in the terminal
 func (uniswapMarkets *UniswapV2Markets) UpdateScreen(asset string, protocol string) {
-	// iterate and see if latest state has changed
 	reserveChanges := 0
 	for tokenAddress, market := range uniswapMarkets.Asset[asset][protocol].CrossMarketsByToken {
 		if market.CurrentArbitrageOpp.Cmp(big.NewFloat(0)) == 1 {

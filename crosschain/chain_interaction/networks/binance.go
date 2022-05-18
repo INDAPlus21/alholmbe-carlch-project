@@ -19,21 +19,21 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 
 	client := utils.GetClient("bsc")
 
+	var minLiq, power = big.NewInt(10), big.NewInt(18)
+	minLiq.Exp(minLiq, power, nil)
 	// the tokens we care about on this network
-	var base, power = big.NewInt(10), big.NewInt(18)
-	base.Exp(base, power, nil)
 	tokens := []utils.Token{
 		utils.Token{
 			Symbol:       "WBNB",
 			Address:      "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
 			Protocol:     "bsc",
-			MinLiquidity: base, // 100 WBNB
+			MinLiquidity: minLiq, // 1 WBNB
 		},
 		utils.Token{
 			Symbol:       "WETH",
 			Address:      "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
 			Protocol:     "bsc",
-			MinLiquidity: base, // 1 WETH
+			MinLiquidity: minLiq, // 1 WETH
 		},
 	}
 
@@ -57,14 +57,5 @@ func Binance(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	}
 
 	wg.Done()
-	// crossMarkets := []
-
-	// set up listener for new block
-
-	// for every block
-	// update reserves
-	// communicate the markets back to the main goroutine
-	// evaluate for atomic arbs
-	// if found, try to execute
 
 }

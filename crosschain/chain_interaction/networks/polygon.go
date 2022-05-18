@@ -19,14 +19,14 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	client := utils.GetClient("polygon")
 
 	// the tokens we care about on this network
-	var base, power = big.NewInt(10), big.NewInt(18)
-	base.Exp(base, power, nil)
+	var minLiq, power = big.NewInt(10), big.NewInt(18)
+	minLiq.Exp(minLiq, power, nil)
 	tokens := []utils.Token{
 		utils.Token{
 			Symbol:       "WMATIC",
 			Address:      "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
 			Protocol:     "polygon",
-			MinLiquidity: base, // 1 WMATIC
+			MinLiquidity: minLiq, // 1 WMATIC
 		},
 	}
 
@@ -48,14 +48,5 @@ func Polygon(uniswapMarkets *utils.UniswapV2Markets, wg *sync.WaitGroup) {
 	}
 
 	wg.Done()
-	// crossMarkets := []
-
-	// set up listener for new block
-
-	// for every block
-	// update reserves
-	// communicate the markets back to the main goroutine
-	// evaluate for atomic arbs
-	// if found, try to execute
 
 }

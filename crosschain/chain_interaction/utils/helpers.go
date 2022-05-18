@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// GetClient initializes and returns connection with the chosen network
 func GetClient(network string) *ethclient.Client {
 	rpc_url := "rpc_" + network
 	err := godotenv.Load()
