@@ -24,7 +24,7 @@ var factories = map[string]map[string]string{
 		"sushiswap": "0xc35DADB65012eC5796536bD9864eD8773aBc74C4",
 	},
 	"fantom": {
-		"spookyswap": "0x152ee697f2e276fa89e96742e9bb9ab1f2e61be3",
+		"spookyswap": "0x733A9D1585f2d14c77b49d39BC7d7dd14CdA4aa5",
 		"spiritswap": "0xEF45d134b73241eDa7703fa787148D9C9F4950b0",
 	},
 	"aurora": {
@@ -67,7 +67,14 @@ func GetTokens(network string) []Token {
 			Address:      "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
 			Protocol:     "polygon",
 			MinLiquidity: minLiq, // 1 WMATIC
-		}}
+		},
+		// {
+		// 	Symbol:       "WETH",
+		// 	Address:      "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+		// 	Protocol:     "polygon",
+		// 	MinLiquidity: minLiq, // 1 WETH
+		// },
+		}
 	} else if network == "avalanche" {
 		return []Token{
 			{

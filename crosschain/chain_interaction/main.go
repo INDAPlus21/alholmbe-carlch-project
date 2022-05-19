@@ -33,7 +33,7 @@ func main() {
 	go networks.Network(&uniswapMarkets, &i, uiChoice, "avalanche")
 	go networks.Network(&uniswapMarkets, &i, uiChoice, "bsc")
 	go networks.Network(&uniswapMarkets, &i, uiChoice, "aurora")
-	// go networks.Network(&uniswapMarkets, &i, uiChoice, "fantom")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "fantom")
 
 	wg.Wait()
 
