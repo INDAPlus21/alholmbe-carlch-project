@@ -1,39 +1,36 @@
-### cross-chain arbitrage searcher
+# Cross-Chain Arbitrage Founder
 
-For the solidity and smart contracts, go to contracts/src/UniswapQuery.sol/ <br>
-We have deployed UniswapQuery.sol on 5 different chains right now, and the contracts can be found at:
+To compile and execute the program:
 
-- on polygon: https://polygonscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
-- on bsc: https://bscscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
-- on avalanche: https://snowtrace.io/address/0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a#code
-- on aurora: https://aurorascan.dev/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A
-- on fantom: https://ftmscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A
+* `go run main.go tui` to run with a user interface.
+* `go run main go print` to only display new oppertunites.
 
-<br>
+**Note**: A `.env` file needs to exist to be able to run the porgram. An example `.env` can be found in `.env.example`.
 
-generatedContracts/UniswapV2Factory.go is a go binding of the UniswapV2Factory contract. It allows us the get information from whatever AMM (automated market maker) on whatever blockchain we want. It's possible because the contract essentially acts as an API, exposing methods for us to call from go via RPC.
+## Specifications
 
-NOTE: A "factory contract" is something almost every AMM has, and it's not written by us, just retrieved from the chain. For example, here is the original UniswapFactory contract on ethereum: https://etherscan.io/address/0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f#code . You can also view it here at UniswapV2Factory.sol.
+The core source code is found in `UniswapV2Market.go`. It retrieves, proccesses and evaulated all markets found between all used chains. Each time the program interacts with a chain it pays a fixed price to the chain called *gas* which create a incentive to perform as much off-chain computation as possible. It it also more optimized to do the computations off-chain as in most cases it has better performance than chain-computation.
 
-<br>
+The retrieval of markets is made on the chain however, as it is faster to get all markets in one call than to make thousand of calls. This interaction is also free to make (no gas is required to view the chain). 
 
-UniswapQuery/UniswapQuery.go is a the go binding for our UniswapQuery.sol contract.
+### Chains
+We have deployed `UniswapQuery.sol` (binded to Go by `UniswapQuery.go`) on 5 different chains right now, and the contracts can be found at:
 
-<br>
+- Polygon: https://polygonscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
+- Binance: https://bscscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
+- Avalanche: https://snowtrace.io/address/0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a#code
+- Aurora: https://aurorascan.dev/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A
+- Fantom: https://ftmscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A
 
-/interface contains the code for generating a terminal user interface that show opportunities
+### Go-Contract Binding
 
-<br>
+We can gather information from an *Automated Market Maker* (AMM) on any specified blockchain by implementing a binding between Go and our `UniswapV2Factory` contract. The binding acts as an API by exposing methods to interact with the RPC through Go.
 
-/networks/network.go contains the function that gets called once in each goroutine for each chain, and it goes until someone terminates the program. It's written in a way so it's easy to add new chains.
-
-<br>
- /utils/helper.go contains a bunch of helper functions that is used in all the other files.<br>
- /utils/UniswapV2Market.go can be seen as the main file of the program, where most of the stuff are being done. Here is where all the markets from every blockchain gets retrieved, processed and evaluated. We try do as much of the computation we can off-chain (so that we don't have to pay gas and because it's often faster), but something that is better to on chain is the retrieval of markets, first of all it's only a "view operation" so it's free but also it allows us to get tens of thousands of markets in one call.
+NOTE: A "*factory contract*" is something almost every AMM has, and it's not written by us, just retrieved from the chain. For example, here is the original UniswapFactory contract on ethereum: https://etherscan.io/address/0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f#code . You can also view it here at `UniswapV2Factory.sol`.
 
 <br>
 
-`go run main.go tui` to run the program with the terminal user interface <br>
-`go run main.go print` to run the program with print statements on every new opportunity<br>
+The functions used to communicate with a chain is found in `network.go`. For each chain, the main routine creates a seperate goroutine that runs until termination of the program. The code is specifically written to make the process of adding a new blockchain as effortless as possible.
 
-a .env file need to exist in the root of the folder, a .env.example file is provided with some RPC url that's enough for now. (We don't send any transactions right now, so it's not necessary to have a private key)
+<br>
+
