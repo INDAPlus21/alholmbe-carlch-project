@@ -11,6 +11,10 @@ import (
 )
 
 var factories = map[string]map[string]string{
+	"ethereum": {
+		"uniswap":   "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f",
+		"sushiswap": "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac",
+	},
 	"avalanche": {
 		"traderjoe": "0x9ad6c38be94206ca50bb0d90783181662f0cfa10",
 		"pangolin":  "0xefa94de7a4656d787667c749f7e1223d71e9fd88",
@@ -34,6 +38,7 @@ var factories = map[string]map[string]string{
 }
 
 var DeployedUniswapQueryContracts = map[string]string{
+	"ethereum":  "0x4180d411c7fdaf77c2a8056ca712550ecca07fcd",
 	"avalanche": "0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a",
 	"bsc":       "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A",
 	"polygon":   "0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A",
@@ -42,8 +47,9 @@ var DeployedUniswapQueryContracts = map[string]string{
 }
 
 func GetFactories(network string) []string {
-
-	if network == "polygon" {
+	if network == "ethereum" {
+		return []string{factories[network]["uniswap"], factories[network]["sushiswap"]}
+	} else if network == "polygon" {
 		return []string{factories[network]["quickswap"], factories[network]["sushiswap"]}
 	} else if network == "avalanche" {
 		return []string{factories[network]["traderjoe"], factories[network]["pangolin"]}
@@ -61,20 +67,20 @@ func GetFactories(network string) []string {
 func GetTokens(network string) []Token {
 	var minLiq, power = big.NewInt(10), big.NewInt(18)
 	minLiq.Exp(minLiq, power, nil)
-	if network == "polygon" {
+	if network == "ethereum" {
+		return []Token{{
+			Symbol:       "WETH",
+			Address:      "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+			Protocol:     "ethereum",
+			MinLiquidity: minLiq, // 1 WETH
+		}}
+	} else if network == "polygon" {
 		return []Token{{
 			Symbol:       "WMATIC",
 			Address:      "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
 			Protocol:     "polygon",
 			MinLiquidity: minLiq, // 1 WMATIC
-		},
-		// {
-		// 	Symbol:       "WETH",
-		// 	Address:      "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-		// 	Protocol:     "polygon",
-		// 	MinLiquidity: minLiq, // 1 WETH
-		// },
-		}
+		}}
 	} else if network == "avalanche" {
 		return []Token{
 			{

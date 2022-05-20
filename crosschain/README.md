@@ -15,8 +15,9 @@ The retrieval of markets is made on the chain however, as it is faster to get al
 
 ### Chains
 
-We have deployed `UniswapQuery.sol` (binded to Go by `UniswapQuery.go`) on 5 different chains right now, and the contracts can be found at:
+We have deployed `UniswapQuery.sol` (binded to Go by `UniswapQuery.go`) on 6 different chains right now, and the contracts can be found at:
 
+- Ethereum: https://etherscan.io/address/0x4180d411c7fdaf77c2a8056ca712550ecca07fcd#code
 - Polygon: https://polygonscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
 - Binance: https://bscscan.com/address/0xBc37182dA7E1f99f5Bd75196736BB2ae804Cbf6A#code
 - Avalanche: https://snowtrace.io/address/0xbc37182da7e1f99f5bd75196736bb2ae804cbf6a#code

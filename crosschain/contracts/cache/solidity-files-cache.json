@@ -9,7 +9,7 @@
     ]
   },
   "files": {
-    "/Users/alexander/skola/alholmbe-carlch-project/crosschain/chain_interaction/contracts/src/UniswapQuery.sol": {
+    "/Users/alexander/skola/alholmbe-carlch-project/crosschain/contracts/src/UniswapQuery.sol": {
       "lastModificationDate": 1651674058815,
       "contentHash": "6f6ba6797f3a0a764e3fef2176208110",
       "sourceName": "src/UniswapQuery.sol",
