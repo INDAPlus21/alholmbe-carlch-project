@@ -4,55 +4,39 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	// "os"
-	// "bufio"
-	// "encoding/json"
-	// "github.com/ethereum/go-ethereum/common"
+	"sync"
+
+	ui "crosschain/interface"
+	"crosschain/networks"
+	"crosschain/utils"
 )
 
-const clearLine = "\033[H\033[2J"
-
-const marketPairs = "src/randomjson/bsc_allMarketPairs.json"
-
 func main() {
-	cmd := exec.Command("tput", "civis")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-	chains := []Network{
-		{"Fantom", "https://rpc3.fantom.network"},
-		{"Binance", "https://bsc-dataseed.binance.org/"},
-		{"Ethereum", "https://cloudflare-eth.com"},
-		{"Polygon", "https://polygon-rpc.com/"},
-		{"Harmony", "https://rpc.heavenswail.one"},
-		{"Aurora", "https://mainnet.aurora.dev"},
-		{"Avalanche", "https://api.avax.network/ext/bc/C/rpc"},
+	uiChoice := os.Args[1]
+	if uiChoice == "tui" {
+		cmd := exec.Command("tput", "civis")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+		fmt.Printf("%s", ui.CLEAR)
 	}
-	/*
-	  file_json, err := os.Open(marketPairs)
-	  if err != nil {
-	    log.Fatal(err)
-	  }
-	  fmt.Printf("Successfully opened file\n")
 
-	  r := bufio.NewReader(file_json)
-	  d := json.NewDecoder(r)
-	  i := 0
+	uniswapMarkets := utils.UniswapV2Markets{}
 
-	  d.Token()
-	  for d.More() {
-	    pair := &Pair{}
-	    d.Decode(pair)
-	    fmt.Printf("%s\n", pair.Tokens[0])
-	    i++
-	  }
-	  fmt.Printf("Successfully read %d objects\n", i)
+	uniswapMarkets.Setup()
 
-	  defer file_json.Close()
-	*/
-	fmt.Printf("\033[H\033[2JNetwork\t\tTransactions")
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
 
-	printTable(chains, 2)
-	for {
-	}
+	i := 0
+
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "polygon")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "avalanche")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "bsc")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "aurora")
+	go networks.Network(&uniswapMarkets, &i, uiChoice, "fantom")
+
+	wg.Wait()
 
 }
+
+// abigen --abi ./builds/token.abi --pkg generatedContracts --type Token --out ./generatedContracts/token.go --bin ./builds/token.bin
