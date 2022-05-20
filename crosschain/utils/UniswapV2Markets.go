@@ -286,21 +286,10 @@ func (uniswapMarkets *UniswapV2Markets) EvaluateCrossMarkets(tokensOfInterest []
 			priceDiff0 := new(big.Float).Quo(otherTokenPrices[0], otherTokenPrices[1])
 			priceDiff1 := new(big.Float).Quo(otherTokenPrices[1], otherTokenPrices[0])
 
-			// fake data to test UI
-			priceDiff0 = big.NewFloat(rand.Float64() + 1)
-			priceDiff1 = big.NewFloat(rand.Float64() + 1)
-
-			if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.3)) == -1 {
-				priceDiff0 = priceDiff0.Sub(priceDiff0, big.NewFloat(0.2))
-				if priceDiff0.Cmp(big.NewFloat(1)) == 1 {
-					market.CurrentArbitrageOpp = priceDiff0
-				}
-			} else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.3)) == -1 {
-				priceDiff1 = priceDiff1.Sub(priceDiff1, big.NewFloat(0.2))
-				if priceDiff1.Cmp(big.NewFloat(1)) == 1 {
-					market.CurrentArbitrageOpp = priceDiff1
-				}
-
+			if priceDiff0.Cmp(priceDiff1) == 1 && priceDiff0.Cmp(big.NewFloat(1.2)) == -1 {
+				market.CurrentArbitrageOpp = priceDiff0
+			} else if priceDiff1.Cmp(priceDiff0) == 1 && priceDiff1.Cmp(big.NewFloat(1.2)) == -1 {
+				market.CurrentArbitrageOpp = priceDiff1
 			}
 		}
 	}
