@@ -1,3 +1,3 @@
 [submodule "lib/ds-test"]
-	path = crosschain/chain_interaction/contracts/lib/ds-test
+	path = crosschain/contracts/lib/ds-test
 	url = https://github.com/dapphub/ds-test
